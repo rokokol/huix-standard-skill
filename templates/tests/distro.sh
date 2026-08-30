@@ -31,7 +31,12 @@ declare -A IMAGE=(
 INSTALL_FLAGS=()
 # Bootstrap: only what the harness itself needs to run in a minimal image — never a
 # dependency the preflight's guidance is supposed to provide, or the guidance test would
-# pass because the answer was planted
+# pass because the answer was planted. Three legitimate kinds: test infrastructure, the
+# package manager's own prerequisite (Arch's pacman -Sy — a printed pacman -S cannot
+# work against an empty sync database, and no reader of a refusal is told to type the
+# refresh), and the platform baseline — what every real host of this tool has but these
+# images strip (a systemd tool's images need systemd for package postinsts, e.g.
+# systemd-sysusers creating a service user)
 declare -A BOOTSTRAP=(
   [debian]='apt-get update -qq && apt-get install -y -qq bash'
   [ubuntu]='apt-get update -qq && apt-get install -y -qq bash'

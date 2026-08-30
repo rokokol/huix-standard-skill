@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- lessons from the first rollout (skvpn): guidance commands are fed `yes` via process substitution, not a pipe (pipefail read yes's SIGPIPE death as failure); the bootstrap doctrine names its three legitimate kinds — test infrastructure, the package manager's own prerequisite, and the platform baseline the images strip but every real host has
+
 ## [1.0.0] - 2026-08-31
 
 ### Added
