@@ -1,0 +1,22 @@
+name: ci
+
+# No docker, no mirrors — nothing here is flaky, so pull requests run it too
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  templates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+      - name: check-templates.sh (self-testing lint)
+        run: |
+          nix shell nixpkgs#shellcheck nixpkgs#shfmt nixpkgs#zsh nixpkgs#actionlint \
+            --command ./check-templates.sh

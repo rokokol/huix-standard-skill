@@ -1,0 +1,31 @@
+# Distro tests — the printed guidance is the tested guidance
+
+`tests/distro.sh` ([template](../templates/tests/distro.sh)) runs install.sh for real, as root, inside `debian`/`ubuntu`/`archlinux`/`fedora` `:latest` containers. It is the one suite the stub-based `tests/run.sh` cannot replace: a real `/etc`, the real package manager, the real `/etc/os-release` deciding what the preflight says.
+
+## The core idea
+
+When the preflight refuses, the harness extracts every `  $ command` line from the refusal **and runs exactly those lines** (stripping a leading `sudo`; the container is root). There is no second, hand-maintained copy of the dependency commands — a copy could only disagree with the printed one, and then a typo in the guidance stays green forever. Here a typo is a red weekly run.
+
+Non-interactivity is arranged around the command, never inside it: `DEBIAN_FRONTEND=noninteractive`, default answers piped to stdin. The printed line has no `-y` because a human reads it.
+
+## Sequence (inside the container)
+
+1. **bootstrap** — only what the harness needs in a minimal image, never a dependency the guidance is supposed to provide (that would plant the answer).
+2. **relative PREFIX is rejected** — a negative assert that proves the argument validation runs.
+3. **install** — if the preflight refuses: the refusal names what is missing, has written nothing, and shows no signs of having carried on past the refusal; then the printed guidance runs; then install must succeed. If everything was already present (some `:latest` images carry a lot), that is stated in the log and the refusal path is exercised by the leaner images.
+4. **the installed tool answers** — bin path exists, manifest exists, `--version` matches `VERSION`, `--help` exits 0, plus the repo's `smoke()`.
+5. **uninstall** — every manifest path is gone, the share dir is gone, and a second `--uninstall` succeeds quietly (idempotence).
+
+Exit semantics: pass = 0, fail = nonzero. One deliberate green-with-a-mark state: a **required** dep whose guidance on that distro has no runnable `$ ` line at all (genuinely manual method) prints `SKIP`, emits a `::notice`, and exits 0 — GitHub badges have no third color, and red is reserved for the standard's promise breaking. A skip must stay rare: the standard prefers finding the ONE scriptable method per distro.
+
+## AUR policy
+
+AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S`: `base-devel` + a throwaway builder user + `makepkg -si --noconfirm` from the package's AUR clone. This path is exercised for real by repos with AUR-only deps (pup), not carried "for the future".
+
+## Systemd
+
+Containers have no PID-1 systemd. Repos whose install talks to it run the whole container cycle with `--no-systemd` in `INSTALL_FLAGS` — a real install at real paths that skips the live `systemctl` calls, which is precisely the flag's purpose (see [install-sh.md](install-sh.md)).
+
+## CI wiring
+
+One reusable `distro.yml` (`workflow_call`, input `distro`) plus four thin wrappers — see [ci.md](ci.md). Locally: `tests/distro.sh fedora` before trusting a release; the images are large, so it is a deliberate command, not part of `nix flake check`.

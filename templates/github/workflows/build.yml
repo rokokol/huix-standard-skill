@@ -1,0 +1,62 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  # update-lock.yml runs this workflow, not a copy of its commands, against the bump
+  # branch — without workflow_call + ref that verify step silently checks out master
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: cachix/install-nix-action@v31
+
+      - name: VERSION matches CHANGELOG
+        run: |
+          ver=$(cat VERSION)
+          grep -qF "## [$ver]" CHANGELOG.md || {
+            echo "VERSION says $ver but CHANGELOG.md has no ## [$ver] heading" >&2
+            exit 1
+          }
+
+      - run: nix build --no-write-lock-file
+      - run: nix flake check --no-write-lock-file
+
+      - name: install.sh works
+        run: |
+          # EXAMPLE — extend with repo-specific assertions (symlinks exist, the suite
+          # passes against the installed copy, rendered configs contain no staging paths)
+          PREFIX=$PWD/out ./install.sh
+          test -f out/share/*/install-manifest
+          PREFIX=$PWD/out ./install.sh --uninstall
+          DESTDIR=$PWD/stage PREFIX=/usr ./install.sh
+          test -f stage/usr/share/*/install-manifest
+          ! PREFIX=usr ./install.sh >/dev/null 2>&1
+
+      - run: nix fmt -- --ci
+
+  # The one file list lives in the flake's scripts-lint check — this job is a fast,
+  # separately-named status for it, not a second copy of the commands
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: cachix/install-nix-action@v31
+      - run: nix build --no-write-lock-file .#checks.x86_64-linux.scripts-lint
