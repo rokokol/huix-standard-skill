@@ -164,9 +164,10 @@ if ((rc != 0)); then
         done
         ;;
       *)
-        # yes answers "y" to [Y/n]-style prompts; dnf treats an empty answer as No,
-        # so a plain newline would not do
-        yes 2>/dev/null | bash -c "$cmd" || die "printed guidance failed: $cmd"
+        # yes answers "y" to [Y/n]-style prompts; dnf treats an empty answer as No. Fed
+        # by process substitution, not a pipe: pipefail would turn yes's own SIGPIPE
+        # death — normal for a command that never reads stdin — into a failed pipeline
+        bash -c "$cmd" < <(yes 2>/dev/null) || die "printed guidance failed: $cmd"
         ;;
     esac
   done <<<"$commands"
