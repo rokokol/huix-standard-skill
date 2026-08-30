@@ -4,9 +4,9 @@
 
 ## The core idea
 
-When the preflight refuses, the harness extracts every `  $ command` line from the refusal **and runs exactly those lines** (stripping a leading `sudo`; the container is root). There is no second, hand-maintained copy of the dependency commands — a copy could only disagree with the printed one, and then a typo in the guidance stays green forever. Here a typo is a red weekly run.
+When the preflight refuses, the harness extracts every `  $ command` line from the refusal **and runs exactly those lines**. There is no second, hand-maintained copy of the dependency commands — a copy could only disagree with the printed one, and then a typo in the guidance stays green forever. Here a typo is a red weekly run.
 
-Non-interactivity is arranged around the command, never inside it: `DEBIAN_FRONTEND=noninteractive`, default answers piped to stdin. The printed line has no `-y` because a human reads it.
+The container is root and ships no `sudo`, so the harness answers `sudo` with a two-line `exec "$@"` shim rather than editing the line — a `sudo` can sit mid-pipeline (`| sudo tee …`) where stripping a prefix cannot reach, and an edited line is no longer the line the reader was given. Non-interactivity is likewise arranged around the command, never inside it: `DEBIAN_FRONTEND=noninteractive`, `yes` piped to stdin (a bare newline would read as "No" to dnf). The printed line has no `-y` because a human reads it.
 
 ## Sequence (inside the container)
 

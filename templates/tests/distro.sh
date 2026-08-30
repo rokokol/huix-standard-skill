@@ -129,16 +129,23 @@ if ((rc != 0)); then
   printf '%s\n' "$out" | grep -qE 'command not found|: line [0-9]' &&
     die "the preflight listed what is missing and then carried on: $out"
 
-  # Runnable guidance lines are `  $ command`; they are run exactly as printed, with a
-  # leading sudo stripped (the container is already root) and non-interactivity arranged
-  # around the command — DEBIAN_FRONTEND, default answers on stdin — never inside it
-  commands=$(printf '%s\n' "$out" | sed -n 's/^  \$ //p' | sed 's/^sudo //')
+  # Runnable guidance lines are `  $ command`; they are run exactly as printed.
+  # Non-interactivity is arranged around the command — DEBIAN_FRONTEND, yes on stdin —
+  # never inside it: the printed line has no -y because a human reads it
+  commands=$(printf '%s\n' "$out" | sed -n 's/^  \$ //p')
   if [[ -z "$commands" ]]; then
     # A required dep with no scriptable official method on this distribution: visible
     # skip, green job. Red is reserved for the standard's promise breaking
     echo "::notice title=@NAME@ distro test::SKIP on $distro — guidance is manual-only"
     printf '  SKIP: no runnable guidance on %s\n' "$distro"
     exit 0
+  fi
+  # The container is root and none of these images ships sudo. Answered with a shim, not
+  # by editing the line: a sudo can sit mid-pipeline (| sudo tee) where stripping a
+  # prefix cannot reach, and an edited line is no longer the line the reader was given
+  if ! command -v sudo >/dev/null; then
+    printf '#!/bin/sh\nexec "$@"\n' >/usr/local/bin/sudo
+    chmod +x /usr/local/bin/sudo
   fi
   export DEBIAN_FRONTEND=noninteractive
   while IFS= read -r cmd; do
@@ -157,7 +164,9 @@ if ((rc != 0)); then
         done
         ;;
       *)
-        yes '' 2>/dev/null | bash -c "$cmd" || die "printed guidance failed: $cmd"
+        # yes answers "y" to [Y/n]-style prompts; dnf treats an empty answer as No,
+        # so a plain newline would not do
+        yes 2>/dev/null | bash -c "$cmd" || die "printed guidance failed: $cmd"
         ;;
     esac
   done <<<"$commands"
