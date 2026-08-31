@@ -47,8 +47,6 @@ Firewall implementations differ even when every package calls the executable `do
 
 The routing assertion must cover the mechanism users rely on, not merely `docker0`. Docker's default bridge has a stable name, but user-defined Compose networks get dynamic `br-*` names; reserve a test address pool in the installed policy and create traffic on an inner bridge from that pool. Where a consumer cannot express interface globs, match dynamic bridge names in the host firewall rather than pretending `exclude_interface = [ "br-*" ]` is a wildcard.
 
-the pattern: the DinD test isolates exactly the traffic path users rely on, not an arbitrary `docker run`. See also [ci.md: pinning CI dependencies](ci.md#pinning-ci-dependencies-via-the-flake) — `sing-box` and `nftables` are pinned through the flake lock, not through unpinned `nix shell nixpkgs#`.
-
 ## CI wiring
 
 One reusable `distro.yml` (`workflow_call`, input `distro`) plus four thin wrappers — see [ci.md](ci.md). Locally: `tests/distro.sh fedora` before trusting a release; the images are large, so it is a deliberate command, not part of `nix flake check`.
