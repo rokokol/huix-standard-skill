@@ -37,6 +37,18 @@ The pattern: the suite does not test your logic — `tests/run.sh` did that — 
 
 Containers have no PID-1 systemd. Repos whose install talks to it run the whole container cycle with `--no-systemd` in `INSTALL_FLAGS` — a real install at real paths that skips the live `systemctl` calls, which is precisely the flag's purpose (see [install-sh.md](install-sh.md)).
 
+## Docker-in-Docker for network integrations
+
+DinD is not part of the generic template. Add it when the product explicitly promises that container traffic works through a VPN, TUN or routing policy: a CLI's ordinary install cycle gains nothing from a second daemon. Keep Docker in a separate `DIND_INSTALL` map as a harness dependency — never hide it in the product preflight or install it before that preflight has proved its own guidance.
+
+The outer distro container needs `--privileged`. Give its inner daemon a private socket, data root, exec root and address pool, and use `--storage-driver vfs`: the outer container normally has an overlay filesystem, so an inner overlay driver fails with `invalid argument`. Pull the inner image before activating a deliberately blocking proxy/TUN; otherwise the test blocks its own fixture setup instead of exercising container traffic. Use `ubuntu:latest`, consistently with the `:latest` outer images, when Ubuntu repository access is the assertion.
+
+Firewall implementations differ even when every package calls the executable `docker`. Fedora's current `moby-engine` selects legacy iptables, which can see no legacy `nat` table in a DinD namespace. Docker 29 can instead start with `--firewall-backend=nftables`; feature-detect that flag from `dockerd --help` so older Docker versions on the other distributions keep working. Print the daemon log when startup dies, retry registry pulls once, and stop both dockerd and the routing process on success or failure.
+
+The routing assertion must cover the mechanism users rely on, not merely `docker0`. Docker's default bridge has a stable name, but user-defined Compose networks get dynamic `br-*` names; reserve a test address pool in the installed policy and create traffic on an inner bridge from that pool. Where a consumer cannot express interface globs, match dynamic bridge names in the host firewall rather than pretending `exclude_interface = [ "br-*" ]` is a wildcard.
+
+the pattern: the DinD test isolates exactly the traffic path users rely on, not an arbitrary `docker run`. See also [ci.md: pinning CI dependencies](ci.md#pinning-ci-dependencies-via-the-flake) — `sing-box` and `nftables` are pinned through the flake lock, not through unpinned `nix shell nixpkgs#`.
+
 ## CI wiring
 
 One reusable `distro.yml` (`workflow_call`, input `distro`) plus four thin wrappers — see [ci.md](ci.md). Locally: `tests/distro.sh fedora` before trusting a release; the images are large, so it is a deliberate command, not part of `nix flake check`.
