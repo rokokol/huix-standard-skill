@@ -22,6 +22,17 @@ Exit semantics: pass = 0, fail = nonzero. One deliberate green-with-a-mark state
 
 AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S`: `base-devel` + a throwaway builder user + `makepkg -si --noconfirm` from the package's AUR clone. This path is exercised for real by repos with AUR-only deps (pup), not carried "for the future".
 
+## What the first runs actually caught
+
+Worth knowing what class of bug this suite exists for, because every one of these was green everywhere else:
+
+- a green command read as failed — `yes |` under pipefail turned yes's normal SIGPIPE death into a pipeline failure;
+- guidance that could not run — `go install …@latest` resolving a pre-go.mod tag whose fresh dependencies demanded a newer go than Debian ships;
+- **a feature probe trusting a proxy** — a script asked `wc -m` whether a locale works, but bash does the counting downstream, and Ubuntu's switch to uutils coreutils made wc answer for a locale bash never got. Probe the mechanism you depend on, never a neighbor;
+- **an old tool version behind a `2>/dev/null`** — Debian's jq 1.7 cannot parse `capture(…)?.g`, and the muted compile error read as "no sections". When a distro fails where the rest pass, un-mute the pipeline first.
+
+The pattern: the suite does not test your logic — `tests/run.sh` did that — it tests your assumptions about what a distribution provides.
+
 ## Systemd
 
 Containers have no PID-1 systemd. Repos whose install talks to it run the whole container cycle with `--no-systemd` in `INSTALL_FLAGS` — a real install at real paths that skips the live `systemctl` calls, which is precisely the flag's purpose (see [install-sh.md](install-sh.md)).
