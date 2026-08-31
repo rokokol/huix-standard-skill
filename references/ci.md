@@ -19,3 +19,9 @@ Weekly bump→verify→land cascade, templated as-is: bump every input onto a te
 `distro.yml` is reusable (`workflow_call`, input `distro`, `runs-on: ubuntu-latest` — docker is preinstalled, `timeout-minutes: 30`). Four wrappers `distro-{debian,ubuntu,arch,fedora}.yml` exist only because a GitHub status badge is per-workflow-file; each is ~15 lines and delegates everything. Triggers on the wrappers: push to master, weekly cron (05:00, before the update-lock wave), workflow_dispatch — **no pull_request**: a Debian mirror having an afternoon must not redden someone's change; the weekly `:latest` run is the upstream-drift detector that requirement exists for.
 
 Repo-specific weekly bots (palette-drift, canonize, upstream re-fetch) follow the same shape — `git diff --quiet` early exit, `github-actions[bot]` identity, dated branch, `gh pr` create-or-edit — but stay per-repo; they are examples of the pattern, not templates.
+
+## Pinning CI dependencies via the flake
+
+Every binary a CI job runs must come from the flake's own lock, not from an unpinned registry lookup. `nix shell nixpkgs#pkg` or `nix run nixpkgs#pkg` in a workflow pulls whatever nixpkgs the runner's channel points at today — a different sing-box version can change nftables chain names, a different nftables can change table semantics, and the job goes red (or worse, green against different behaviour) for no change in the repo's own code.
+
+The fix is mechanical: add the needed tools to the repo's `devShells` (or a dedicated CI shell) so the lock file pins them, and call `nix develop` instead. A pinned shell is a reproducible assertion; an unpinned `nix shell` is a mirror-fate test that does not belong in a release gate. This applies to runtime-adjacent test tools (sing-box, nftables, iptables) and to linters alike — if the tool's output matters, pin it.
