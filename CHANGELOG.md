@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - lessons from the first rollout (skvpn): guidance commands are fed `yes` via process substitution, not a pipe (pipefail read yes's SIGPIPE death as failure); the bootstrap doctrine names its three legitimate kinds — test infrastructure, the package manager's own prerequisite, and the platform baseline the images strip but every real host has
+- lessons from the fourth wave (claude-account, rofi-wooordhunt): the sudo shim is `exec env "$@"`, because a printed line may carry VAR=value assignments after sudo (GOBIN=... go install); the AUR arm builds by hand for real now — depends read from the PKGBUILD, makepkg without -si (its own sudo calls would hit the shim), pacman -U as root — exercised by rofi-wooordhunt's pup
 - lessons from the second and third rollouts (hyprland-screen-shader, ddlc-hyprlock): the template installer carries the declarative sweep — paths a previous manifest names that the current run did not write are removed, which is what makes re-running without a flag undo it; env-baking wrappers are written via escaped heredocs, and the install-sh reference now says out loud that a linter is satisfied by rewriting, not by disable comments
 
 ## [1.0.0] - 2026-08-31

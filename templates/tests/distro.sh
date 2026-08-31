@@ -147,9 +147,11 @@ if ((rc != 0)); then
   fi
   # The container is root and none of these images ships sudo. Answered with a shim, not
   # by editing the line: a sudo can sit mid-pipeline (| sudo tee) where stripping a
-  # prefix cannot reach, and an edited line is no longer the line the reader was given
+  # prefix cannot reach, and an edited line is no longer the line the reader was given.
+  # exec env, not exec: a printed line may carry VAR=value assignments after sudo
+  # (GOBIN=... go install), and env is what gives those effect
   if ! command -v sudo >/dev/null; then
-    printf '#!/bin/sh\nexec "$@"\n' >/usr/local/bin/sudo
+    printf '#!/bin/sh\nexec env "$@"\n' >/usr/local/bin/sudo
     chmod +x /usr/local/bin/sudo
   fi
   export DEBIAN_FRONTEND=noninteractive
@@ -157,15 +159,25 @@ if ((rc != 0)); then
     printf '  running printed guidance: %s\n' "$cmd"
     case "$cmd" in
       "paru -S "*)
-        # AUR counts as official on Arch, but the base image has no AUR helper and paru
-        # itself lives in AUR — so the helper's job is done by hand: base-devel, a
-        # throwaway builder, makepkg from the AUR clone of each named package
+        # AUR counts as official on Arch, but paru itself lives in the AUR, so a base
+        # container has no way to have it — the one arm whose printed line cannot run.
+        # Its documented equivalent: base-devel, a throwaway builder (makepkg refuses
+        # root, and its own sudo calls would hit our shim), the package's depends read
+        # from its PKGBUILD and installed by pacman, makepkg without -si, pacman -U
         pacman -S --noconfirm --needed base-devel git >/dev/null
         id builder >/dev/null 2>&1 || useradd -m builder
-        for pkg in ${cmd#paru -S }; do
-          sudo -u builder git clone --depth 1 \
+        read -ra aur_pkgs <<<"${cmd#paru -S }"
+        for pkg in "${aur_pkgs[@]}"; do
+          runuser -u builder -- git clone --depth 1 \
             "https://aur.archlinux.org/$pkg.git" "/home/builder/$pkg"
-          (cd "/home/builder/$pkg" && sudo -u builder makepkg -si --noconfirm)
+          deps=$(runuser -u builder -- bash -c \
+            "cd /home/builder/$pkg && source PKGBUILD >/dev/null 2>&1; echo \"\${makedepends[*]:-} \${depends[*]:-}\"")
+          read -ra dep_list <<<"$deps"
+          if ((${#dep_list[@]})); then
+            pacman -S --noconfirm --needed "${dep_list[@]}" >/dev/null
+          fi
+          runuser -u builder -- bash -c "cd /home/builder/$pkg && makepkg --noconfirm" >/dev/null
+          pacman -U --noconfirm "/home/builder/$pkg"/*.pkg.tar* >/dev/null
         done
         ;;
       *)
