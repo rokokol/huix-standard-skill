@@ -86,7 +86,14 @@ manifest="$share/install-manifest"
 
 # --- manifest helpers ------------------------------------------------------------------
 # Every path the install creates is recorded as its final runtime path (no DESTDIR): the
-# manifest ships inside a staged tree and stays correct wherever the tree ends up
+# manifest ships inside a staged tree and stays correct wherever the tree ends up.
+# Paths a previous install wrote that this run does not are swept before the new
+# manifest lands — that sweep is what makes the flags declarative
+
+old_paths=()
+if [[ -f "$manifest" ]]; then
+  mapfile -t old_paths < <(grep -v '^#' "$manifest")
+fi
 
 installed=()
 
@@ -206,6 +213,15 @@ put 755 "$here/@NAME@.sh" "$share_runtime/@NAME@.sh"
 lnk "../share/@NAME@/@NAME@.sh" "$PREFIX/bin/@NAME@"
 # <<<
 put 644 "$here/VERSION" "$share_runtime/VERSION"
+
+# The declarative sweep: whatever the previous install wrote and this one did not
+for path in "${old_paths[@]}"; do
+  keep=0
+  for now in "${installed[@]}"; do
+    [[ "$path" == "$now" ]] && keep=1
+  done
+  ((keep)) || rm -f "${DESTDIR%/}$path"
+done
 
 {
   echo "# @NAME@ $VERSION install manifest"

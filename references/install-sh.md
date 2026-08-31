@@ -24,14 +24,20 @@ Booleans are single flags that flip the default, and the installer is **declarat
 
 Everything lives in `$PREFIX/share/<name>/`: the script(s), the data, the manifest. `$PREFIX/bin/<name>` is a **relative symlink** (`ln -sfn ../share/<name>/<name>.sh`) so the whole prefix can be moved or staged. The script resolves itself through `readlink -f` and finds its data in its own directory — no path substitution at install time for the common case.
 
-When an install flag has to bake an environment default into the entry point (the non-Nix analog of `wrapProgram --set-default`), the symlink becomes a generated two-line wrapper:
+When an install flag has to bake an environment default into the entry point (the non-Nix analog of `wrapProgram --set-default`), the symlink becomes a generated wrapper, written with a heredoc whose `\$` are escaped — shellcheck reads that cleanly, where a printf full of literal `${...}` needs a disable comment:
 
 ```sh
+cat >"$root/bin/<name>" <<EOF
 #!/bin/sh
-export ROFI_SHADER_PROMPT='...'; exec "$PREFIX/share/<name>/<name>.sh" "$@"
+export SOME_VAR="\${SOME_VAR:-$value}"
+exec "$share_runtime/<name>.sh" "\$@"
+EOF
+chmod 755 "$root/bin/<name>"
 ```
 
-Use `export VAR="${VAR:-value}"` so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file.
+The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped.
+
+**Never silence a linter where a rewrite satisfies it.** The two shapes that come up: `! cmd` under `set -e` skips errexit (SC2251) — write `if cmd; then exit 1; fi`; literal `${...}` in generated scripts (SC2016) — write them via escaped heredocs. A `disable=` comment is a last resort for a rule that is wrong about the code, not a way past a rule that is right.
 
 Repos that render a config with an embedded path (ddlc-hyprlock's `@share@`) substitute the **runtime** path `$PREFIX/share/<name>`, never `$DESTDIR$PREFIX` — DESTDIR is where files land, PREFIX is where they will live. Escape sed replacement metacharacters: `sed 's/[&|\\]/\\&/g'`.
 
