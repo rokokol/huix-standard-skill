@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- the provider-general CI doctrine moved out to the ci-standard skill; references/ci.md points there and keeps the nix-family concretes
 - lessons from skvpn's routed DinD suite: keep Docker as a harness-only dependency, use `--privileged` plus the `vfs` storage driver for overlay-on-overlay, pull fixtures before activating a blocking TUN, feature-detect Docker 29's nftables backend for Fedora's unusable legacy iptables namespace, and test dynamic `br-*` bridges/address pools rather than only `docker0`
 - CI reference: every binary a CI test runs must come from the flake's lock (via `devShells`), not from unpinned `nix shell nixpkgs#…` — a version change in an unpinned registry lookup silently breaks nftables chain names or table semantics and the job goes red (or green against different behaviour) for no change in repo code
 - lessons from the first rollout (skvpn): guidance commands are fed `yes` via process substitution, not a pipe (pipefail read yes's SIGPIPE death as failure); the bootstrap doctrine names its three legitimate kinds — test infrastructure, the package manager's own prerequisite, and the platform baseline the images strip but every real host has
