@@ -55,8 +55,11 @@ Repos that touch systemd also take `--no-systemd`: a **real** install (files at 
 
 Two dependency classes:
 
-- **install deps** — the installer or the installed artifact cannot exist without them. Any missing ⇒ collect all, print the report, exit 1 having written nothing.
-- **session deps** — supplied by the user's live session (hyprctl, rofi, hyprlock, journalctl). Missing ⇒ one warning line each; the install proceeds. A theme for a compositor you have not installed yet is still a valid install.
+- **install deps** — the installer or the installed artifact cannot exist without them. Any missing ⇒ collect all, print the report, exit 1 having written nothing. The tools an installed command *shells out to* are install deps too (skvpn's sing-box, virtual-media-devices' ffmpeg) — a command that cannot run is not an install.
+- **session deps** — supplied by the user's live session (hyprctl, rofi, hyprlock, journalctl, sddm). Missing ⇒ one warning line each; the install proceeds. A theme for a compositor you have not installed yet is still a valid install.
+- **platform deps** — supplied by the kernel or the platform, not by a package on PATH (virtual-media-devices' v4l2loopback module). Same treatment as session deps — warn, never refuse — and the distro-test smoke must not exercise the half that needs them: no container has a kernel module.
+
+When components share an install dep (ffmpeg needed by both cam and mic), make `need()` idempotent — the report should name each missing tool once. When the missing *binaries* map to different *packages* per distro (`pactl` → `pulseaudio-utils`/`libpulse`), keep one `pkg_for DISTRO BINARY` mapping and print a single deduplicated `$ ` line per distro listing exactly the missing packages — the mapping is the honest version of "exact remediation", and the unknown-distro arm falls back to the binary's own name as a search term.
 
 The report format is machine-readable, and the distro tests depend on it:
 
