@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - install-sh reference: the component-installer adaptation (from ddlc-themes, at the owner's call) — components are additive with a per-component sweep, manifest lines carry their owning component, and `--uninstall --component C` removes one selectively; plus the config-tree variant: no `--prefix`, the manifest under `<config-home>/<name>/`, version in the manifest header, pruning that stops at the owning home
+- install-sh reference: the bin entry is a copy, not the relative symlink, when the tool derives its data directory from its own location in a non-`share/<name>` shape (ddlc-rofi-theme's switch) — matching what its Nix package installs
 - install-sh reference, self-checks: the stub-PATH recipe for testing the refusal path (symlink `bash` too — `PATH="$stub" bash` resolves with the new PATH; point `OS_RELEASE` at a fixture, the sandbox has no `/etc/os-release`), and `patchShebangs` before running the suite inside a flake check — the sandbox has no `/usr/bin/env`
 
 - the skill repo carries its own flake now: the lint toolbox is pinned by a lock and reached with `nix develop`, the same doctrine references/ci.md prescribes

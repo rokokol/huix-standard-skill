@@ -37,6 +37,8 @@ chmod 755 "$root/bin/<name>"
 
 The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped.
 
+The symlink rule assumes the script's data lives in `share/<name>/` next to it. A tool that derives its data directory from its own location in a different shape (ddlc-rofi-theme's switch: `<own dir>/../share/rofi/themes`) gets a **copy** in bin instead — which is also what its Nix package installs, and the installer is that package's projection. Say so in a comment at the `put`; the manifest records the copy like anything else.
+
 **Never silence a linter where a rewrite satisfies it.** The two shapes that come up: `! cmd` under `set -e` skips errexit (SC2251) — write `if cmd; then exit 1; fi`; literal `${...}` in generated scripts (SC2016) — write them via escaped heredocs. A `disable=` comment is a last resort for a rule that is wrong about the code, not a way past a rule that is right.
 
 **When the formatter's opinion changes between versions, the lock bump and the reformat land as one commit** — shfmt 3.14 spaces `((! x))` where 3.13 glued it, and the two reject each other's spelling, so following the new one with the old lock (or the reverse) leaves the weekly bump red for no change of the repo's own.
