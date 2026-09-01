@@ -157,6 +157,13 @@ if ((rc != 0)); then
   export DEBIAN_FRONTEND=noninteractive
   while IFS= read -r cmd; do
     printf '  running printed guidance: %s\n' "$cmd"
+    # What the stream answers differs by prompt style: pacman asks provider-selection
+    # menus ("Enter a number (default=1)") that reject "y" and re-prompt forever, so it
+    # gets bare newlines — the default, which its [Y/n] also reads as yes. dnf keeps
+    # "y": an empty answer is No there. The timeout is the belt for the next prompt
+    # style nobody predicted — a red failure instead of an unbounded hang
+    answer=y
+    case "$cmd" in *pacman*) answer='' ;; esac
     case "$cmd" in
       "paru -S "*)
         # AUR counts as official on Arch, but paru itself lives in the AUR, so a base
@@ -181,10 +188,11 @@ if ((rc != 0)); then
         done
         ;;
       *)
-        # yes answers "y" to [Y/n]-style prompts; dnf treats an empty answer as No. Fed
-        # by process substitution, not a pipe: pipefail would turn yes's own SIGPIPE
-        # death — normal for a command that never reads stdin — into a failed pipeline
-        bash -c "$cmd" < <(yes 2>/dev/null) || die "printed guidance failed: $cmd"
+        # Fed by process substitution, not a pipe: pipefail would turn yes's own
+        # SIGPIPE death — normal for a command that never reads stdin — into a failed
+        # pipeline
+        timeout 900 bash -c "$cmd" < <(yes "$answer" 2>/dev/null) ||
+          die "printed guidance failed (or timed out): $cmd"
         ;;
     esac
   done <<<"$commands"

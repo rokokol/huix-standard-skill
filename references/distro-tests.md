@@ -6,7 +6,7 @@
 
 When the preflight refuses, the harness extracts every `  $ command` line from the refusal **and runs exactly those lines**. There is no second, hand-maintained copy of the dependency commands — a copy could only disagree with the printed one, and then a typo in the guidance stays green forever. Here a typo is a red weekly run.
 
-The container is root and ships no `sudo`, so the harness answers `sudo` with a two-line `exec "$@"` shim rather than editing the line — a `sudo` can sit mid-pipeline (`| sudo tee …`) where stripping a prefix cannot reach, and an edited line is no longer the line the reader was given. Non-interactivity is likewise arranged around the command, never inside it: `DEBIAN_FRONTEND=noninteractive`, `yes` piped to stdin (a bare newline would read as "No" to dnf). The printed line has no `-y` because a human reads it.
+The container is root and ships no `sudo`, so the harness answers `sudo` with a two-line `exec "$@"` shim rather than editing the line — a `sudo` can sit mid-pipeline (`| sudo tee …`) where stripping a prefix cannot reach, and an edited line is no longer the line the reader was given. Non-interactivity is likewise arranged around the command, never inside it, and **what the stdin stream says depends on the package manager's prompt style**: dnf gets `yes` (its `[y/N]` reads an empty answer as No), pacman gets `yes ''` — bare newlines — because its provider-selection menus (`Enter a number (default=1)`, e.g. ffmpeg's jack/libx264 providers) reject `y` as "invalid number" and re-prompt forever, while its `[Y/n]` reads empty as the default yes. Every guidance command also runs under `timeout` as the belt for the next prompt style nobody predicted: a red failure, not an unbounded hang filling the log. The printed line has no `-y` because a human reads it.
 
 ## Sequence (inside the container)
 
@@ -29,7 +29,8 @@ Worth knowing what class of bug this suite exists for, because every one of thes
 - a green command read as failed — `yes |` under pipefail turned yes's normal SIGPIPE death into a pipeline failure;
 - guidance that could not run — `go install …@latest` resolving a pre-go.mod tag whose fresh dependencies demanded a newer go than Debian ships;
 - **a feature probe trusting a proxy** — a script asked `wc -m` whether a locale works, but bash does the counting downstream, and Ubuntu's switch to uutils coreutils made wc answer for a locale bash never got. Probe the mechanism you depend on, never a neighbor;
-- **an old tool version behind a `2>/dev/null`** — Debian's jq 1.7 cannot parse `capture(…)?.g`, and the muted compile error read as "no sections". When a distro fails where the rest pass, un-mute the pipeline first.
+- **an old tool version behind a `2>/dev/null`** — Debian's jq 1.7 cannot parse `capture(…)?.g`, and the muted compile error read as "no sections". When a distro fails where the rest pass, un-mute the pipeline first;
+- **a prompt the answer stream cannot answer** — pacman's provider menu rejected `yes`'s `y` as "invalid number" and re-prompted forever, growing a 9 GB log before anyone looked (virtual-media-devices' ffmpeg pulling jack). Hence the per-manager answer stream and the `timeout` belt above: an interactive loop must become a red failure, never a hang.
 
 The pattern: the suite does not test your logic — `tests/run.sh` did that — it tests your assumptions about what a distribution provides.
 
