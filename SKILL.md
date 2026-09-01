@@ -37,6 +37,8 @@ Work through this in order when bringing a repo up to standard:
 7. CHANGELOG bullets for every user-visible change; CLAUDE.md layout/build sections updated.
 8. Backport: diff what this repo needed against the templates; generalize the difference into this skill.
 
+A repo with no `install.sh` — pure data (ddlc-palette) or a plugin installed by its manager (ddlc.nvim) — takes the **partial shape**: steps 1 (VERSION, read by the package or exposed as `lib.version`, with the CI check) and 5–7 minus everything installer-shaped — no completions, no distro tests, no distro badges. The lint dedup and the registry guard apply in full.
+
 ## Layout
 
 ```

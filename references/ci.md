@@ -18,6 +18,8 @@ Job `shell`: exactly one command — `nix build .#checks.x86_64-linux.scripts-li
 
 Weekly bump→verify→land cascade, templated as-is: bump every input onto a temp `flake-lock/<date>` branch, verify by calling build.yml (the workflow itself, not a copy of its commands) against that ref, fast-forward master and delete the branch only on green. `concurrency: update-lock`. In the huix family the crons form a wave (palette 05:00 → consumers 06:00 → huix 07:00) so upstream data flows through in one morning — that choreography is a family fact, not part of the template.
 
+Working on a repo during the wave means the bot lands a lock bump under you and your push comes back rejected. The canon: `git rebase origin/master`, then re-run `nix fmt -- --ci`, `nix flake check` and the fast suite **on the fresh lock** — a bumped lock can bring a formatter with a changed opinion or a toolchain with changed behaviour — and only then push. Never force-push over the bot's commit; it landed on green and is as much master as yours.
+
 ## Distro workflows
 
 `distro.yml` is reusable (`workflow_call`, input `distro`, `runs-on: ubuntu-latest` — docker is preinstalled, `timeout-minutes: 30`). Four wrappers `distro-{debian,ubuntu,arch,fedora}.yml` exist only because a GitHub status badge is per-workflow-file; each is ~15 lines and delegates everything. Triggers on the wrappers: push to master, weekly cron (05:00, before the update-lock wave), workflow_dispatch — **no pull_request**: a Debian mirror having an afternoon must not redden someone's change; the weekly `:latest` run is the upstream-drift detector that requirement exists for.

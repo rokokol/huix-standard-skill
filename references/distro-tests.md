@@ -36,6 +36,8 @@ The pattern: the suite does not test your logic — `tests/run.sh` did that — 
 
 One portability rule for the assertions themselves: no empty alternation in ERE — `(a|b|)$` is rejected outright by some grep implementations (ugrep; POSIX calls it undefined). Spell the empty case explicitly, e.g. `[[:space:]]*` for a blank line.
 
+And one more surface the suite ends up testing: **the observer's own network topology**. A download that fails inside the container but succeeds from the host (`curl -sI <url>` is the one-line probe) is the network, not the repo — Docker's default bridge egresses directly, bypassing host VPN routing, so a geo-blocking CDN can 403 the container while answering the host 200 (met live: Fedora's `ffmpeg-free` pulling openh264 from Cisco's CloudFront). Verify the cycle locally with `--network host` (`docker run --rm --network host -v "$REPO:/src:ro" <image> bash /src/tests/distro.sh --inside <distro>`); CI runners egress elsewhere and stay the source of truth for that distro.
+
 ## Systemd
 
 Containers have no PID-1 systemd. Repos whose install talks to it run the whole container cycle with `--no-systemd` in `INSTALL_FLAGS` — a real install at real paths that skips the live `systemctl` calls, which is precisely the flag's purpose (see [install-sh.md](install-sh.md)).
