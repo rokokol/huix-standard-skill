@@ -20,7 +20,7 @@ Exit semantics: pass = 0, fail = nonzero. One deliberate green-with-a-mark state
 
 ## AUR policy
 
-AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S`: `base-devel` + a throwaway builder user + `makepkg -si --noconfirm` from the package's AUR clone. This path is exercised for real by repos with AUR-only deps (pup), not carried "for the future".
+AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S` with the documented equivalent: `base-devel` + a throwaway builder (makepkg refuses root, and its own sudo calls would hit our shim), the package's depends read from its PKGBUILD and installed by pacman, `makepkg --noconfirm` **without** `-si`, then `pacman -U` as root. This path is exercised for real by repos with AUR-only deps (pup), not carried "for the future".
 
 ## What the first runs actually caught
 
