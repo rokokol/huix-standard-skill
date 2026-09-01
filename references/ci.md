@@ -1,6 +1,6 @@
 # CI — one build.yml, one lint list, badges that mean something
 
-The provider-general doctrine — gate vs detector, pinning, the callable build workflow, the bump cascade, falsifiable checks — lives in the [ci-standard](https://github.com/rokokol/ci-standard) skill; this file keeps the nix-family concretes on top of it.
+The provider-general doctrine — gate vs detector, pinning, the callable build workflow, the bump cascade, falsifiable checks — lives in the [ci-standard](https://github.com/rokokol/ci-standard-skill) skill; this file keeps the nix-family concretes on top of it.
 
 Templates: [`templates/github/workflows/`](../templates/github/workflows/). Action pins are `actions/checkout@v7` and `cachix/install-nix-action@v31`, watched by dependabot (`github-actions` ecosystem, weekly).
 

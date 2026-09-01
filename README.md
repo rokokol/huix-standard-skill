@@ -7,7 +7,7 @@
 ![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=white)
 ![Nix flake](https://img.shields.io/badge/Nix-flake-7EBAE4?logo=nixos&logoColor=white)
 [![license](https://img.shields.io/badge/code-MIT-3DA639)](LICENSE)
-[![ci](https://github.com/rokokol/huix-standard/actions/workflows/ci.yml/badge.svg)](https://github.com/rokokol/huix-standard/actions/workflows/ci.yml)
+[![ci](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml)
 
 </div>
 
@@ -27,7 +27,7 @@ Born in the [rokokol/huix](https://github.com/rokokol/huix) family of repos, but
 Clone and symlink into your skills directory:
 
 ```sh
-git clone https://github.com/rokokol/huix-standard ~/Projects/huix-standard
+git clone https://github.com/rokokol/huix-standard-skill ~/Projects/huix-standard
 ln -s ~/Projects/huix-standard ~/.claude/skills/huix-standard
 ```
 
