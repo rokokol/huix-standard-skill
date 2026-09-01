@@ -8,12 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- install-sh reference: the component-installer adaptation (from ddlc-themes, at the owner's call) — components are additive with a per-component sweep, manifest lines carry their owning component, and `--uninstall --component C` removes one selectively; plus the config-tree variant: no `--prefix`, the manifest under `<config-home>/<name>/`, version in the manifest header, pruning that stops at the owning home
+- install-sh reference, self-checks: the stub-PATH recipe for testing the refusal path (symlink `bash` too — `PATH="$stub" bash` resolves with the new PATH; point `OS_RELEASE` at a fixture, the sandbox has no `/etc/os-release`), and `patchShebangs` before running the suite inside a flake check — the sandbox has no `/usr/bin/env`
+
 - the skill repo carries its own flake now: the lint toolbox is pinned by a lock and reached with `nix develop`, the same doctrine references/ci.md prescribes
 - build.yml template: a guard step that fails on any `nix run|shell nixpkgs#` in the workflows — unpinned registry lookups broke family CI quietly more than once
 - install-sh reference: when a formatter's opinion changes between versions (shfmt 3.14's `((! x))`), the lock bump and the reformat land as one commit — the old and new spellings reject each other
 
 ### Changed
 
+- build.yml template: the relative-PREFIX negative assert is an if-form now — `set -e` ignores negated pipelines, so a `! cmd` line only bites while it happens to be last, and anyone appending a line disarms it silently
 - the provider-general CI doctrine moved out to the ci-standard skill; references/ci.md points there and keeps the nix-family concretes
 - lessons from skvpn's routed DinD suite: keep Docker as a harness-only dependency, use `--privileged` plus the `vfs` storage driver for overlay-on-overlay, pull fixtures before activating a blocking TUN, feature-detect Docker 29's nftables backend for Fedora's unusable legacy iptables namespace, and test dynamic `br-*` bridges/address pools rather than only `docker0`
 - CI reference: every binary a CI test runs must come from the flake's lock (via `devShells`), not from unpinned `nix shell nixpkgs#…` — a version change in an unpinned registry lookup silently breaks nftables chain names or table semantics and the job goes red (or green against different behaviour) for no change in repo code

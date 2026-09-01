@@ -46,7 +46,12 @@ jobs:
           PREFIX=$PWD/out ./install.sh --uninstall
           DESTDIR=$PWD/stage PREFIX=/usr ./install.sh
           test -f stage/usr/share/*/install-manifest
-          ! PREFIX=usr ./install.sh >/dev/null 2>&1
+          # if-form, not `! cmd`: -e ignores negated pipelines, so a `! cmd` line only
+          # bites while it happens to be the last one — anyone appending disarms it
+          if PREFIX=usr ./install.sh >/dev/null 2>&1; then
+            echo "a relative PREFIX was accepted" >&2
+            exit 1
+          fi
 
       - run: nix fmt -- --ci
 

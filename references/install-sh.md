@@ -93,8 +93,23 @@ No manifest found ⇒ fall back to the repo's pre-standard fixed path list, kept
 
 skvpn's `managed` marker keeps its separate meaning — "refuse to overwrite files this installer did not write" — that is about *install* safety, and the manifest does not replace it.
 
+## Component installers: additive, with selective uninstall
+
+A repo whose installer takes `--component C` (ddlc-themes' five applications, ddlc-sddm-theme's `theme|cursors`) does not apply the declarative doctrine across components — people install them one at a time, and `--component btop` silently removing the kitty themes would read as data loss, not convergence. The adapted contract:
+
+- **Components are additive**: installing one never touches another.
+- **The declarative sweep runs per component**: re-running a component removes what a previous install of *that component* wrote and this run did not (a renamed theme leaves no stale file), and carries every other component's entries over untouched.
+- **Manifest lines carry their owner**: `component path` — the component name first (it cannot contain a space), then the runtime path. That one field is what makes both the scoped sweep and selective uninstall implementable.
+- **`--uninstall --component C` takes one component out** and rewrites the manifest with the rest; a full `--uninstall` consumes everything. So `--uninstall` no longer refuses `--component` — it refuses only flags that configure an install.
+- The pre-manifest fallback must not *write* a manifest: a selective legacy uninstall has no record to rewrite, and inventing one would claim the other components exist.
+
+## Config-tree installers
+
+A repo that installs into `~/.config` (and friends) rather than a prefix keeps the whole grammar minus `--prefix`: the config home is the prefix analog (absolute always, same negative test), the manifest lives at `<config-home>/<name>/install-manifest`, and its header line carries the version — there is no `share/<name>/VERSION` copy, because there is no installed executable to ask. A second home (ddlc-themes' `--claude-home`) means the uninstall's directory pruning stops at whichever home the path belongs to.
+
 ## Self-checks the repo must carry
 
 - `tests/run.sh` (or `scripts-lint`) asserts `--help` names every flag the `case` parses, and `-v` output equals `<name> $(cat VERSION)`.
 - The completions drift check ([completions.md](completions.md)) fails when a flag exists in `install.sh` but not in both completion files.
-- The refusal path is tested: a machine missing an install dep gets a report naming *all* missing deps (not just the first), and nothing is written.
+- The refusal path is tested: a machine missing an install dep gets a report naming *all* missing deps (not just the first), and nothing is written. The way to fake that machine in `tests/run.sh` is a stub PATH — a directory of symlinks to every tool the script needs *except* the dep — and it must include `bash` itself: `PATH="$stub" bash …` resolves `bash` with the new PATH already in force. Point `OS_RELEASE` at a fixture too; the flake-check sandbox has no `/etc/os-release`, and the unknown-distro arm prints no `$ ` line to assert on.
+- When `tests/run.sh` runs inside a flake check, `patchShebangs` the copied tree first: the sandbox has no `/usr/bin/env`, and `./install.sh` dies with "bad interpreter" before any assertion runs.
