@@ -10,6 +10,8 @@ Triggers: push to master, pull_request, workflow_dispatch, **and `workflow_call`
 
 Job `nix`: the VERSION↔CHANGELOG step ([versioning.md](versioning.md)) → `nix build` → `nix flake check` → an `install.sh works` step (staging install, manifest exists, uninstall empties it, relative PREFIX refused, plus repo-specific asserts) → `nix fmt -- --ci`.
 
+When the repo's preflight demands runtime tools (ffmpeg, sing-box — anything beyond coreutils), the `install.sh works` step runs under `nix develop`: the runner is not a target distribution, so those deps come pinned from the lock, and the dev shell carries them. The honest install-by-guidance path belongs to the distro suite alone — a preflight that refuses the runner is working as designed, not a bug to soften.
+
 Job `shell`: exactly one command — `nix build .#checks.x86_64-linux.scripts-lint`. **The file list lives in the flake's `scripts-lint` check and nowhere else.** Before the standard, the same shellcheck/shfmt commands ran in two places with two hand-maintained file lists; now the CI job is a fast named status for the flake check. Consequence: `scripts-lint` must absorb everything only CI linted before — completion files, test stubs, `tests/distro.sh`, `tests/check-completions.sh` — and it also runs the completions drift check.
 
 ## update-lock.yml

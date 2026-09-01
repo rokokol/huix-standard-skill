@@ -40,7 +40,10 @@ jobs:
       - name: install.sh works
         run: |
           # EXAMPLE — extend with repo-specific assertions (symlinks exist, the suite
-          # passes against the installed copy, rendered configs contain no staging paths)
+          # passes against the installed copy, rendered configs contain no staging paths).
+          # If the preflight demands runtime tools beyond coreutils, wrap this block in
+          # `nix develop --no-write-lock-file --command bash -euo pipefail -c '...'` —
+          # the runner is not a target distribution, its deps come from the lock
           PREFIX=$PWD/out ./install.sh
           test -f out/share/*/install-manifest
           PREFIX=$PWD/out ./install.sh --uninstall
