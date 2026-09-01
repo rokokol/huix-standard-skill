@@ -33,6 +33,8 @@ Worth knowing what class of bug this suite exists for, because every one of thes
 
 The pattern: the suite does not test your logic — `tests/run.sh` did that — it tests your assumptions about what a distribution provides.
 
+One portability rule for the assertions themselves: no empty alternation in ERE — `(a|b|)$` is rejected outright by some grep implementations (ugrep; POSIX calls it undefined). Spell the empty case explicitly, e.g. `[[:space:]]*` for a blank line.
+
 ## Systemd
 
 Containers have no PID-1 systemd. Repos whose install talks to it run the whole container cycle with `--no-systemd` in `INSTALL_FLAGS` — a real install at real paths that skips the live `systemctl` calls, which is precisely the flag's purpose (see [install-sh.md](install-sh.md)).

@@ -37,7 +37,7 @@ chmod 755 "$root/bin/<name>"
 
 The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped.
 
-The symlink rule assumes the script's data lives in `share/<name>/` next to it. A tool that derives its data directory from its own location in a different shape (ddlc-rofi-theme's switch: `<own dir>/../share/rofi/themes`) gets a **copy** in bin instead — which is also what its Nix package installs, and the installer is that package's projection. Say so in a comment at the `put`; the manifest records the copy like anything else.
+The symlink rule assumes the script's data lives in `share/<name>/` next to it. A tool that derives its data directory from its own location in a different shape (ddlc-rofi-theme's switch: `<own dir>/../share/rofi/themes`; skvpn is the same case) gets a **copy** in bin instead — which is also what its Nix package installs, and the installer is that package's projection. Say so in a comment at the `put`; the manifest records the copy like anything else.
 
 **Never silence a linter where a rewrite satisfies it.** The two shapes that come up: `! cmd` under `set -e` skips errexit (SC2251) — write `if cmd; then exit 1; fi`; literal `${...}` in generated scripts (SC2016) — write them via escaped heredocs. A `disable=` comment is a last resort for a rule that is wrong about the code, not a way past a rule that is right.
 
@@ -104,6 +104,8 @@ A repo whose installer takes `--component C` (ddlc-themes' five applications, dd
 - **Manifest lines carry their owner**: `component path` — the component name first (it cannot contain a space), then the runtime path. That one field is what makes both the scoped sweep and selective uninstall implementable.
 - **`--uninstall --component C` takes one component out** and rewrites the manifest with the rest; a full `--uninstall` consumes everything. So `--uninstall` no longer refuses `--component` — it refuses only flags that configure an install.
 - The pre-manifest fallback must not *write* a manifest: a selective legacy uninstall has no record to rewrite, and inventing one would claim the other components exist.
+- **Shared bookkeeping gets the `meta` pseudo-component** (ddlc-sddm-theme): the installed VERSION copy belongs to no real component, so its manifest lines say `meta`. Every install run treats `meta` as in scope (rewriting it, so no duplicates accumulate); a selective uninstall keeps it; removing the last real component takes the `meta` files and the manifest with it — bookkeeping alone is not an install.
+- **The sweep is what makes conditional files declarative.** A config written only under some flags (sddm's `/etc/sddm.conf.d/10-ddlc.conf` unless `--no-configure`) is owned by its component in the manifest; a re-run that does not write it sweeps it. `--no-configure` needs no removal code of its own — dropping the flag restores the file, adding it removes one, exactly the Nix-rebuild semantics, for free.
 
 ## Config-tree installers
 
