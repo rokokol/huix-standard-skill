@@ -39,6 +39,8 @@ The `${VAR:-...}` lands literally, so the user's environment still wins — that
 
 **Never silence a linter where a rewrite satisfies it.** The two shapes that come up: `! cmd` under `set -e` skips errexit (SC2251) — write `if cmd; then exit 1; fi`; literal `${...}` in generated scripts (SC2016) — write them via escaped heredocs. A `disable=` comment is a last resort for a rule that is wrong about the code, not a way past a rule that is right.
 
+**Write arithmetic negation as an explicit comparison.** shfmt 3.14 reformats `((!x))` into `((! x))`, so a repo whose lock and formatter disagree on the version goes red on the weekly bump for no change of its own. `((x == 0))` reads the same to every shfmt there has been — use it everywhere, including inside or-chains (`((a || b == 0 || c))`).
+
 Repos that render a config with an embedded path (ddlc-hyprlock's `@share@`) substitute the **runtime** path `$PREFIX/share/<name>`, never `$DESTDIR$PREFIX` — DESTDIR is where files land, PREFIX is where they will live. Escape sed replacement metacharacters: `sed 's/[&|\\]/\\&/g'`.
 
 ## DESTDIR and --no-systemd
