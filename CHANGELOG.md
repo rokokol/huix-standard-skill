@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - the skill repo carries its own flake now: the lint toolbox is pinned by a lock and reached with `nix develop`, the same doctrine references/ci.md prescribes
 - build.yml template: a guard step that fails on any `nix run|shell nixpkgs#` in the workflows — unpinned registry lookups broke family CI quietly more than once
-- install-sh reference: arithmetic negation is spelled `((x == 0))` — shfmt 3.14 reformats `((!x))`, and the weekly lock bump goes red on it for no change of the repo's own
+- install-sh reference: when a formatter's opinion changes between versions (shfmt 3.14's `((! x))`), the lock bump and the reformat land as one commit — the old and new spellings reject each other
 
 ### Changed
 
