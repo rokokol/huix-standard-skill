@@ -9,7 +9,7 @@ The version lives in exactly one machine-readable place: a `VERSION` file at the
 
 ## What has no version
 
-A version is a promise to someone who installed a particular one and reports bugs against it. A repository that is only ever *read* at whatever revision is checked out makes no such promise — a skill, a prompt library, a docs-only repo — so it carries no `VERSION` file, no gate and no version badge, and its changelog is dated rather than numbered. This skill is one of those, which is why `check-templates.sh` no longer runs the step on itself; `templates/VERSION` stays, because it is a template for the repos that do ship a version.
+Everything above is for repos that ship a version. Which repos do not, and why, is the [ci](https://github.com/rokokol/ci-skill) skill's `references/checks.md` — it owns that rule, and this file does not restate it. The consequence visible here: this skill is one of those, so it carries no `VERSION` and `check-templates.sh` no longer runs the gate on itself.
 
 ## The CI check
 
