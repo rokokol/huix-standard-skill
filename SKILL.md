@@ -21,7 +21,8 @@ These were argued once; do not re-litigate them per repo:
 - **Dependencies are never installed silently.** The preflight collects everything missing and prints exact per-distro remediation; runnable commands are printed as `  $ command` lines (two spaces, dollar, space) — the distro tests execute exactly those lines, so a typo in the guidance is a red CI run, not an undiscovered lie. AUR counts as official on Arch (`$ paru -S pkg`). Where no official package exists, print the ONE recommended method. See [references/install-sh.md](references/install-sh.md).
 - **Uninstall by manifest.** The install writes every path it created (final runtime paths, no DESTDIR) to `share/<name>/install-manifest`; `--uninstall` consumes it. See [references/install-sh.md](references/install-sh.md).
 - **bin/ holds a relative symlink** into `share/<name>/` where the script and its data live; the script resolves itself with `readlink -f` and finds data in its own directory. A generated two-line exec wrapper replaces the symlink only when install flags bake environment defaults (the non-Nix analog of `wrapProgram --set-default`).
-- **Distro tests run on push to master, weekly cron, and dispatch — never on pull requests.** A flaky mirror must not redden someone's PR; the weekly run on `:latest` images is the upstream-drift detector. Per-distro badges require per-workflow files: one reusable `distro.yml` plus four thin wrappers. See [references/distro-tests.md](references/distro-tests.md) and [references/ci.md](references/ci.md).
+- **Distro tests run on push to master, weekly cron, and dispatch — never on pull requests.** A flaky mirror must not redden someone's PR; the weekly run on `:latest` images is the upstream-drift detector. Per-distro badges require per-workflow files: one reusable `distro.yml` plus four thin wrappers. See [references/distro-tests.md](references/distro-tests.md).
+- **CI doctrine is not duplicated here.** Gate vs detector, pinning, `workflow_call` + `ref`, the bump cascade, one badge per workflow file, falsifiable checks — all of it lives in the [ci](https://github.com/rokokol/ci-skill) skill, and this family follows it whole. What stays a family fact: `build.yml`'s job `nix` runs the VERSION↔CHANGELOG step, `nix build`, `nix flake check`, an `install.sh works` step (under `nix develop` when the preflight demands runtime tools — the runner is not a target distribution) and `nix fmt -- --ci`; job `shell` is the single command `nix build .#checks.x86_64-linux.scripts-lint`, because **the lint file list lives in the flake's `scripts-lint` check and nowhere else**; and the family's update-lock crons form a wave (palette 05:00 → consumers 06:00 → huix 07:00) so a week of upstream drift flows through in one morning.
 - **Every check must be able to fail, and that is demonstrated, not assumed.** A new test runs red against the pre-fix state (or a deliberately broken fixture) before the code that turns it green exists. Checkers ship self-tests against known-bad fixtures. Assertions on printed guidance match whole lines (`grep -qxF`), never substrings.
 
 ## Adoption checklist
@@ -32,7 +33,7 @@ Work through this in order when bringing a repo up to standard:
 2. `install.sh` reworked onto the canonical skeleton: flag grammar, preflight with `$ `-prefixed guidance, manifest, `--uninstall`, declarative booleans, `--no-systemd` where the repo touches systemd ([references/install-sh.md](references/install-sh.md), template `templates/install.sh`).
 3. `completions/install.sh.bash` + `completions/install.sh.zsh` from templates; drift check wired into `scripts-lint` ([references/completions.md](references/completions.md)).
 4. `tests/distro.sh` from template, adapted; run each distro locally in docker before pushing ([references/distro-tests.md](references/distro-tests.md)).
-5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`) ([references/ci.md](references/ci.md)).
+5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates.
 6. README: four distro badges after the build badge; document `--uninstall`, completions sourcing, runtime env vars ([references/readme.md](references/readme.md)).
 7. CHANGELOG bullets for every user-visible change; CLAUDE.md layout/build sections updated.
 8. Backport: diff what this repo needed against the templates; generalize the difference into this skill.
@@ -43,7 +44,7 @@ A repo with no `install.sh` — pure data (ddlc-palette) or a plugin installed b
 
 ```
 SKILL.md             this file — decisions and the checklist
-references/          one spec per piece: install-sh, versioning, completions, distro-tests, ci, readme
+references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files, mirroring a target repo's paths; @NAME@/@OWNER@/@REPO@ tokens in strings and comments only
 check-templates.sh   lints the templates raw, then instantiated with demo values; self-tests against tests/fixtures
 tests/fixtures/      known-bad inputs the checkers must fail on

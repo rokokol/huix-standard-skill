@@ -77,10 +77,5 @@ if (cd "$bad" && actionlint .github/workflows/*.yml >/dev/null 2>&1); then
 fi
 rm -rf "$bad"
 
-echo "== VERSION matches CHANGELOG (the standard, applied to itself)"
-ver=$(cat VERSION)
-grep -qF "## [$ver]" CHANGELOG.md ||
-  fail "VERSION says $ver but CHANGELOG.md has no ## [$ver] heading"
-
 echo
 echo "check-templates: everything holds"

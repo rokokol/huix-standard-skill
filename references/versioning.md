@@ -7,6 +7,10 @@ The version lives in exactly one machine-readable place: a `VERSION` file at the
 - `CHANGELOG.md` (Keep a Changelog + semver): the current version has a `## [x.y.z]` heading; work in progress goes under `## [Unreleased]`.
 - Git tags are `v<x.y.z>`.
 
+## What has no version
+
+A version is a promise to someone who installed a particular one and reports bugs against it. A repository that is only ever *read* at whatever revision is checked out makes no such promise — a skill, a prompt library, a docs-only repo — so it carries no `VERSION` file, no gate and no version badge, and its changelog is dated rather than numbered. This skill is one of those, which is why `check-templates.sh` no longer runs the step on itself; `templates/VERSION` stays, because it is a template for the repos that do ship a version.
+
 ## The CI check
 
 `build.yml` carries this step before anything builds:

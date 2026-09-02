@@ -54,4 +54,4 @@ The routing assertion must cover the mechanism users rely on, not merely `docker
 
 ## CI wiring
 
-One reusable `distro.yml` (`workflow_call`, input `distro`) plus four thin wrappers — see [ci.md](ci.md). Locally: `tests/distro.sh fedora` before trusting a release; the images are large, so it is a deliberate command, not part of `nix flake check`.
+One reusable `distro.yml` (`workflow_call`, input `distro`) plus four thin wrappers — one badge is one workflow file, per the [ci](https://github.com/rokokol/ci-skill) skill. Locally: `tests/distro.sh fedora` before trusting a release; the images are large, so it is a deliberate command, not part of `nix flake check`.

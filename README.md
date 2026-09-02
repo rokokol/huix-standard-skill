@@ -1,63 +1,87 @@
 <div align="center">
 
-# huix-standard
+# huix-standard skill
 
 **One standard for making Nix-first repos installable everywhere else (≧◡≦)**
 
-![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=white)
-![Nix flake](https://img.shields.io/badge/Nix-flake-7EBAE4?logo=nixos&logoColor=white)
-[![license](https://img.shields.io/badge/code-MIT-3DA639)](LICENSE)
+![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=flat&logo=anthropic&logoColor=white)
+![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat&logo=gnubash&logoColor=white)
+![Nix](https://img.shields.io/badge/Nix-flake-7EBAE4?style=flat&logo=nixos&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+[![license](https://img.shields.io/badge/MIT-3DA639?style=flat)](LICENSE)
 [![ci](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml)
 
 </div>
 
-A [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code) that standardizes how a Nix-flake-first Linux repo supports every other distribution: a canonical `install.sh` with a version, an uninstall that consumes its own install manifest, a dependency preflight that never installs anything silently, tab completion for the installer, docker-based distro tests for Debian/Ubuntu/Arch/Fedora with per-distro CI badges, and one deduplicated lint/CI shape.
+A Nix-first repo has one honest answer for Nix users and, usually, a hand-written `install.sh` for everyone else that nobody has run on Fedora since spring. This skill is the other half of that promise: `install.sh` as a faithful projection of the flake onto `/usr/local`, built the same way in every repo, and proven on four distributions by containers that execute the installer's own printed guidance
 
-Born in the [rokokol/huix](https://github.com/rokokol/huix) family of repos, but written to be generic: the templates are parameterized (`@NAME@`, `@OWNER@`, `@REPO@` — tokens live only inside strings and comments, so every template lints as-is), and family specifics appear only as examples in the references.
+Bring a repo up to standard once and the payoff is that the boring parts stop being decisions — the flag grammar, what a preflight may and may not do, where the uninstall manifest lives, which workflow may gate a pull request. They were argued once and written down, so the next repo inherits the argument instead of repeating it
+
+Born in the [rokokol/huix](https://github.com/rokokol/huix) family, but written to be generic: templates are parameterized with `@NAME@` / `@OWNER@` / `@REPO@` tokens that live only inside strings and comments, so every template lints as-is, and family specifics appear only as worked examples in the references
 
 ## Contents
 
-- [Use as a skill](#use-as-a-skill)
+- [Install](#install)
 - [What the standard says](#what-the-standard-says)
+- [The adoption checklist](#the-adoption-checklist)
 - [Tests](#tests)
 - [Layout](#layout)
 
-## Use as a skill
-
-Clone and symlink into your skills directory:
+## Install
 
 ```sh
 git clone https://github.com/rokokol/huix-standard-skill ~/Projects/huix-standard
 ln -s ~/Projects/huix-standard ~/.claude/skills/huix-standard
 ```
 
-Then ask Claude Code to bring a repo up to standard — [SKILL.md](SKILL.md) carries the adoption checklist and the decisions; `references/` carries the reasoning; `templates/` carries the files, mirroring a target repo's paths so copying is mechanical.
+Or straight into the skills directory your agent reads:
+
+```sh
+git clone https://github.com/rokokol/huix-standard-skill ~/.claude/skills/huix-standard
+```
+
+> [!NOTE]
+> A skill has no version to pin — it is read at whatever revision you have checked out, so `git pull` is the whole upgrade path
+
+Then ask Claude Code to bring a repo up to standard. [SKILL.md](SKILL.md) carries the decisions and the checklist, `references/` the reasoning, `templates/` the files themselves, laid out along a target repo's own paths so copying is mechanical
 
 ## What the standard says
 
-The short version — each line links to the full spec:
+| | |
+|---|---|
+| **[One source of version](references/versioning.md)** | A `VERSION` file at the root that `nix/package.nix` reads, `install.sh -v` prints, and CI cross-checks against a matching `CHANGELOG.md` heading — so a release cannot ship with the two disagreeing |
+| **[A canonical install.sh](references/install-sh.md)** | `-h/-v` short flags beside the long ones, one flag per boolean named so its presence flips the default, install-affecting Nix options mirrored as flags while runtime tunables stay documented env vars |
+| **[A preflight that installs nothing](references/install-sh.md)** | Missing dependencies are collected and reported with exact per-distro remediation, printed as runnable `  $ command` lines — and the distro tests execute those very lines, so a typo in the guidance is a red run rather than an undiscovered lie |
+| **[Uninstall by manifest](references/install-sh.md)** | Every path the install creates is written to `share/<name>/install-manifest`, and `--uninstall` consumes it. A run also sweeps paths a previous manifest names that this run did not write, which is what makes re-running without a flag actually undo it |
+| **[Completions that cannot drift](references/completions.md)** | Hand-written bash and zsh completion for the installer, sourced from the checkout, with a drift check in the lint that fails when a flag gains no completion |
+| **[Distro tests in real containers](references/distro-tests.md)** | Debian, Ubuntu, Arch and Fedora `:latest`, each running the preflight's own guidance and then the install — on push and weekly, never on pull requests, each with its own badge |
+| **[Checks proven able to fail](references/distro-tests.md)** | A new test goes red against the pre-fix state or a deliberately broken fixture before the code that turns it green exists, and assertions on printed guidance match whole lines with `grep -qxF`, never substrings |
 
-- [One `VERSION` file](references/versioning.md) read by the flake, the installer and CI; the CHANGELOG must have a heading for it.
-- [A canonical install.sh](references/install-sh.md): `-h/-v` (and `-f` where `--force` exists), declarative single-flag booleans, install-affecting Nix options as flags and runtime tunables as documented env vars, a preflight that refuses loudly with runnable `$ `-prefixed per-distro guidance, and `--uninstall` by manifest.
-- [Hand-written completions for install.sh](references/completions.md), sourced from the checkout, kept honest by a drift check.
-- [Distro tests](references/distro-tests.md) that run the preflight's own printed commands inside `:latest` containers — the guidance cannot rot silently.
-- [CI](references/ci.md): one reusable distro workflow plus four badge-bearing wrappers (push to master + weekly, never on PRs), a build.yml that update-lock can actually call, and a single lint file list owned by the flake.
-- Every check is proven able to fail — red first against a bad fixture or the pre-fix state, green second.
+CI beyond that shape is not duplicated here — gate versus detector, pinning, `workflow_call` + `ref`, the bump cascade and one badge per workflow file all live in the **[ci](https://github.com/rokokol/ci-skill)** skill, which this family follows whole
+
+## The adoption checklist
+
+The order matters, and [SKILL.md](SKILL.md) spells each step out: `VERSION` and its CI gate → `install.sh` on the canonical skeleton → completions plus the drift check → `tests/distro.sh` run locally in docker → the workflows → the readme's badge row and `--uninstall` docs → changelog bullets → backporting whatever this repo taught you into the templates
+
+A repo with no installer at all — pure data, or a plugin its own manager installs — takes the **partial shape**: the version handling and the CI conventions in full, nothing installer-shaped
+
+> [!IMPORTANT]
+> When applying the standard teaches you something the templates got wrong, fix the template in the same sitting. The standard is only real while the repos and the skill agree
 
 ## Tests
 
 ```sh
-./check-templates.sh
+nix develop -c ./check-templates.sh
 ```
 
-Lints every template raw and instantiated, runs actionlint over the workflows, and then feeds the lint its known-bad fixtures from `tests/fixtures/` — the run fails unless the fixtures do.
+Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the workflows, then feeds the checkers their known-bad fixtures from `tests/fixtures/` — the run fails unless the fixtures do
 
 ## Layout
 
 ```
-SKILL.md             the checklist and the decisions
-references/          one spec per piece: install-sh, versioning, completions, distro-tests, ci, readme
-templates/           copyable files mirroring a target repo's paths
+SKILL.md             the decisions and the adoption checklist
+references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
+templates/           copyable files mirroring a target repo's paths, @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
-tests/fixtures/      known-bad inputs the lint must fail on
+tests/fixtures/      known-bad inputs the checkers must fail on
 ```
