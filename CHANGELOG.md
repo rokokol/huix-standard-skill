@@ -2,13 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered — a skill is read at whatever revision you have checked out, so there is no version to bump.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [ci](https://github.com/rokokol/ci-skill) skill, which owns what has no version.
 
-## Unreleased
+## 2026-09-02
 
 ### Removed
 
 - the skill's own `VERSION` file and the self-applied VERSION↔CHANGELOG step: a skill is read at whatever revision is checked out, so it has no version to be wrong about — versioning.md now says what has no version, and this changelog is dated rather than numbered. `templates/VERSION` stays: the repos this skill standardizes do ship a version
+
+### Changed
+
+- the CI doctrine left this skill entirely: `references/ci.md` is gone and SKILL.md links to the [ci](https://github.com/rokokol/ci-skill) skill, keeping only the nix-family concretes — `build.yml`'s job composition, `scripts-lint` as the one lint file list, and the family's cron wave
+
+## 2026-09-01
 
 ### Added
 
@@ -31,7 +37,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - build.yml template: the relative-PREFIX negative assert is an if-form now — `set -e` ignores negated pipelines, so a `! cmd` line only bites while it happens to be last, and anyone appending a line disarms it silently
-- the CI doctrine left this skill entirely: `references/ci.md` is gone and SKILL.md links to the [ci](https://github.com/rokokol/ci-skill) skill, keeping only the nix-family concretes — `build.yml`'s job composition, `scripts-lint` as the one lint file list, and the family's cron wave
 - lessons from skvpn's routed DinD suite: keep Docker as a harness-only dependency, use `--privileged` plus the `vfs` storage driver for overlay-on-overlay, pull fixtures before activating a blocking TUN, feature-detect Docker 29's nftables backend for Fedora's unusable legacy iptables namespace, and test dynamic `br-*` bridges/address pools rather than only `docker0`
 - every binary a CI test runs must come from the flake's lock (via `devShells`), not from unpinned `nix shell nixpkgs#…` — a version change in an unpinned registry lookup silently breaks nftables chain names or table semantics and the job goes red (or green against different behaviour) for no change in repo code; the general rule now lives in the [ci](https://github.com/rokokol/ci-skill) skill
 - lessons from the first rollout (skvpn): guidance commands are fed `yes` via process substitution, not a pipe (pipefail read yes's SIGPIPE death as failure); the bootstrap doctrine names its three legitimate kinds — test infrastructure, the package manager's own prerequisite, and the platform baseline the images strip but every real host has
