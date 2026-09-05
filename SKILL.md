@@ -14,7 +14,7 @@ Read the reference for the piece you are working on before writing code; copy te
 
 These were argued once; do not re-litigate them per repo:
 
-- **One source of version.** A `VERSION` file at the repo root. `nix/package.nix` reads it with `lib.fileContents ../VERSION`; `install.sh -v|--version` prints it; CI asserts `CHANGELOG.md` has a `## [$(cat VERSION)]` heading. See [references/versioning.md](references/versioning.md).
+- **One source of version.** The rule, and everything about changelogs and releases, is the [versioning](https://github.com/rokokol/versioning-skill) skill's and is not restated here. What is a family fact: `nix/package.nix` reads the `VERSION` file with `lib.fileContents ../VERSION`, `install.sh -v|--version` prints it, and an installed copy carries it at `share/<name>/VERSION`. See [references/versioning.md](references/versioning.md).
 - **Short flags.** Wherever a tool or installer accepts `--help`, `--version`, `--force`, it also accepts `-h`, `-v`, `-f`. Completions update in the same commit — the drift check enforces it.
 - **One flag per boolean.** Named so its presence flips the default (`--tailscale`, `--no-restore`); never a `--x`/`--no-x` pair. Consequence: install.sh is declarative — each run converges the system to exactly the flags given, and re-running without a flag undoes what the flag did.
 - **Installer flags mirror only install-affecting options.** Nix module options that change installed artifacts get flags; runtime tunables stay environment variables, documented in a dedicated `--help` section and in the README.
