@@ -74,7 +74,7 @@ A repo with no installer at all — pure data, or a plugin its own manager insta
 nix develop -c ./check-templates.sh
 ```
 
-Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the workflows, then feeds the checkers their known-bad fixtures from `tests/fixtures/` — the run fails unless the fixtures do
+Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, runs the completion drift check on the templates it ships beside, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
 
 ## Layout
 
@@ -83,5 +83,6 @@ SKILL.md             the decisions and the adoption checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files mirroring a target repo's paths, @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
+check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

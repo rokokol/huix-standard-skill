@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [ci](https://github.com/rokokol/ci-skill) skill, which owns what has no version.
 
+## 2026-09-07
+
+### Added
+
+- `check-skill.sh`, the gate every skill repository shares, copied verbatim from the [ci](https://github.com/rokokol/ci-skill) skill and run by `check-templates.sh`: `SKILL.md` loads (frontmatter closed, name valid and agreeing with the symlink, description within what an agent reads), every reference is reached from `SKILL.md` by a chain of real links, every link and anchor resolves — and each of those is proven able to fail on a planted defect every time the gate runs. This repository had no `SKILL.md` check at all before
+- `check-templates.sh` now runs `templates/tests/check-completions.sh` on the template installer and completions, the way a target repository runs it on its own — the one template that is executed here rather than only linted; actionlints this repository's own `ci.yml` beside the template workflows; and requires `templates/VERSION` to be an `x.y.z`, its shape being all it can be checked against
+
+### Changed
+
+- the unpinned-registry guard moved from an inline step in `ci.yml` into `check-templates.sh`, so it runs locally too and the workflow has one step to keep
+
 ## 2026-09-05
 
 ### Removed

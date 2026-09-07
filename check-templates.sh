@@ -3,8 +3,10 @@
 # instantiated with demo values — and then proves the lint can fail at all by feeding it
 # the known-bad fixtures. A checker that cannot go red is not a checker.
 #
-# Needs: shellcheck, shfmt, zsh, actionlint, bash — all taken from PATH; CI provides them
-# via nix run, locally a dev shell does
+# Needs: shellcheck, shfmt, zsh, actionlint, bash — from the flake's dev shell, locally and
+# in CI alike, never from PATH's luck:
+#
+#   nix develop -c ./check-templates.sh
 set -euo pipefail
 
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -15,10 +17,10 @@ fail() {
   exit 1
 }
 
-sh_templates=(
-  check-templates.sh
-  templates/install.sh templates/tests/distro.sh templates/tests/check-completions.sh
-)
+# The gate's own scripts, linted but never instantiated: they carry no tokens, only the
+# sed that replaces them. check-skill.sh is copied verbatim from the ci skill
+gate=(check-templates.sh check-skill.sh)
+sh_templates=(templates/install.sh templates/tests/distro.sh templates/tests/check-completions.sh)
 bash_sourced=(templates/completions/install.sh.bash)
 zsh_sourced=(templates/completions/install.sh.zsh)
 workflows=(templates/github/workflows/*.yml)
@@ -27,6 +29,9 @@ lint_sh() {
   shellcheck "$@"
   shfmt -d -i 2 -ci "$@"
 }
+
+echo "== the gate's own scripts lint"
+lint_sh "${gate[@]}"
 
 echo "== raw templates lint as-is (tokens live only in strings and comments)"
 lint_sh "${sh_templates[@]}"
@@ -63,6 +68,31 @@ for f in "${workflows[@]}"; do
   instantiate "$f" "$work/.github/workflows/$(basename "$f")"
 done
 (cd "$work" && actionlint .github/workflows/*.yml)
+
+echo "== this repository's own workflows are valid, and their tools come from the lock rather than a registry"
+# The same guard the build.yml template hands out, applied here so it runs locally too
+# rather than only as a step in ci.yml
+actionlint
+if grep -rEn 'nix (run|shell) nixpkgs#' .github/workflows; then
+  fail "an unpinned registry lookup in a workflow — pin the tool in the flake's dev shell and use nix develop"
+fi
+
+echo "== the completion drift check agrees with the templates it ships beside"
+# The one template that can be executed here rather than only linted: run it on the
+# template installer and completions, exactly as a target repository runs it on its own
+bash templates/tests/check-completions.sh "$PWD/templates"
+
+echo "== templates/VERSION is the x.y.z a new repository starts from"
+# Its shape is all it can be checked against: it is not this repository's version (a skill
+# has none) and no changelog records it — it is the seed a target repository copies and
+# then owns, and that repository's own VERSION↔CHANGELOG check takes over from there
+grep -qxE '[0-9]+\.[0-9]+\.[0-9]+' templates/VERSION ||
+  fail "templates/VERSION is not an x.y.z: '$(cat templates/VERSION)'"
+
+echo "== this repository passes the gate every skill repository shares"
+# SKILL.md loads, every reference is reached from it, every link and anchor resolves —
+# and check-skill.sh proves each of those able to fail on a planted defect as it runs
+./check-skill.sh -n huix-standard .
 
 echo "== the lint can fail: known-bad fixtures must go red"
 if lint_sh tests/fixtures/must-fail.sh >/dev/null 2>&1; then

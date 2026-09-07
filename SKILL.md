@@ -47,5 +47,6 @@ SKILL.md             this file — decisions and the checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files, mirroring a target repo's paths; @NAME@/@OWNER@/@REPO@ tokens in strings and comments only
 check-templates.sh   lints the templates raw, then instantiated with demo values; self-tests against tests/fixtures
+check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```
