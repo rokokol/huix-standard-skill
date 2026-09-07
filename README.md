@@ -84,5 +84,6 @@ references/          one spec per piece: install-sh, versioning, completions, di
 templates/           copyable files mirroring a target repo's paths, @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
 check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
+check-pins.sh        the pin guard for the workflows, copied verbatim from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

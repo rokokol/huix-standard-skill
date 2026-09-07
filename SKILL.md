@@ -33,7 +33,7 @@ Work through this in order when bringing a repo up to standard:
 2. `install.sh` reworked onto the canonical skeleton: flag grammar, preflight with `$ `-prefixed guidance, manifest, `--uninstall`, declarative booleans, `--no-systemd` where the repo touches systemd ([references/install-sh.md](references/install-sh.md), template `templates/install.sh`).
 3. `completions/install.sh.bash` + `completions/install.sh.zsh` from templates; drift check wired into `scripts-lint` ([references/completions.md](references/completions.md)).
 4. `tests/distro.sh` from template, adapted; run each distro locally in docker before pushing ([references/distro-tests.md](references/distro-tests.md)).
-5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates.
+5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`, the pin guard as `./check-pins.sh` — copied verbatim from the ci skill's templates, never edited) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates.
 6. README: four distro badges after the build badge; document `--uninstall`, completions sourcing, runtime env vars ([references/readme.md](references/readme.md)).
 7. CHANGELOG bullets for every user-visible change; CLAUDE.md layout/build sections updated.
 8. Backport: diff what this repo needed against the templates; generalize the difference into this skill.
@@ -48,5 +48,6 @@ references/          one spec per piece: install-sh, versioning, completions, di
 templates/           copyable files, mirroring a target repo's paths; @NAME@/@OWNER@/@REPO@ tokens in strings and comments only
 check-templates.sh   lints the templates raw, then instantiated with demo values; self-tests against tests/fixtures
 check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
+check-pins.sh        the pin guard for the workflows, copied verbatim from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

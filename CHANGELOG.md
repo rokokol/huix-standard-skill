@@ -10,10 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `check-skill.sh`, the gate every skill repository shares, copied verbatim from the [ci](https://github.com/rokokol/ci-skill) skill and run by `check-templates.sh`: `SKILL.md` loads (frontmatter closed, name valid and agreeing with the symlink, description within what an agent reads), every reference is reached from `SKILL.md` by a chain of real links, every link and anchor resolves — and each of those is proven able to fail on a planted defect every time the gate runs. This repository had no `SKILL.md` check at all before
 - `check-templates.sh` now runs `templates/tests/check-completions.sh` on the template installer and completions, the way a target repository runs it on its own — the one template that is executed here rather than only linted; actionlints this repository's own `ci.yml` beside the template workflows; and requires `templates/VERSION` to be an `x.y.z`, its shape being all it can be checked against
+- `check-pins.sh`, the pin guard for the workflows, copied verbatim from the [ci](https://github.com/rokokol/ci-skill) skill: it covers every unpinned shape the ci skill names rather than the one `nix run` grep this repository knew, proves on every run that it catches each one and stays quiet on the pinned spellings, and scans the template workflows beside this repository's own — the templates are workflows too
 
 ### Changed
 
-- the unpinned-registry guard moved from an inline step in `ci.yml` into `check-templates.sh`, so it runs locally too and the workflow has one step to keep
+- the unpinned-registry guard moved from an inline step in `ci.yml` into `check-templates.sh`, so it runs locally too and the workflow has one step to keep — and then from an inline grep into `check-pins.sh`, so the pattern has one source that travels by copying
+- build.yml template: the guard step runs `check-pins.sh` instead of its own inline grep, so a target repository copies the file from the ci skill beside the workflow and widens the pattern by re-copying rather than by editing
 
 ## 2026-09-05
 

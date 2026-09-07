@@ -18,8 +18,9 @@ fail() {
 }
 
 # The gate's own scripts, linted but never instantiated: they carry no tokens, only the
-# sed that replaces them. check-skill.sh is copied verbatim from the ci skill
-gate=(check-templates.sh check-skill.sh)
+# sed that replaces them. check-skill.sh and check-pins.sh are copied verbatim from the
+# ci skill
+gate=(check-templates.sh check-skill.sh check-pins.sh)
 sh_templates=(templates/install.sh templates/tests/distro.sh templates/tests/check-completions.sh)
 bash_sourced=(templates/completions/install.sh.bash)
 zsh_sourced=(templates/completions/install.sh.zsh)
@@ -69,13 +70,12 @@ for f in "${workflows[@]}"; do
 done
 (cd "$work" && actionlint .github/workflows/*.yml)
 
-echo "== this repository's own workflows are valid, and their tools come from the lock rather than a registry"
-# The same guard the build.yml template hands out, applied here so it runs locally too
-# rather than only as a step in ci.yml
+echo "== this repository's own workflows are valid, and no workflow here or in the templates reaches a registry"
+# The pin guard the build.yml template hands out, copied verbatim from the ci skill. It
+# proves on every run that it catches each unpinned shape, then scans both this
+# repository's workflows and the template ones — the templates are workflows too
 actionlint
-if grep -rEn 'nix (run|shell) nixpkgs#' .github/workflows; then
-  fail "an unpinned registry lookup in a workflow — pin the tool in the flake's dev shell and use nix develop"
-fi
+./check-pins.sh .github/workflows templates/github/workflows
 
 echo "== the completion drift check agrees with the templates it ships beside"
 # The one template that can be executed here rather than only linted: run it on the
