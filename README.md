@@ -85,5 +85,6 @@ templates/           copyable files at a target repo's paths (github/ lands as .
 check-templates.sh   the self-testing template lint
 check-skill.sh       the gate every skill repository shares, vendored from the ci skill
 check-pins.sh        the pin guard for the workflows, vendored from the ci skill
+vendor-sync.sh       keeps the vendored copies byte-equal to their source, vendored from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

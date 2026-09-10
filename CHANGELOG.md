@@ -8,7 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- the description no longer claims VERSION handling and CI badges, which belong to the versioning and ci skills, names huix, and trades bare "uninstall" for `install.sh --uninstall`
+- prose in `SKILL.md` and the references ends without a full stop, like the rest of the family
+- the adoption checklist asks for the repo's agent instructions to be updated — `CLAUDE.md`, `AGENTS.md` or whatever the agent reads — rather than naming one harness's file
 - adoption step 5 says how a repository takes `distro.yml` and its four wrappers: they are the only templates a repo keeps byte for byte, so they are vendored with the ci skill's cascade as manual lines of the lock rather than copied, and the gate refuses an edit in place. `check-pins.sh` and `check-skill.sh` are described as vendored from the ci skill, not copied
+- the `build.yml` template's VERSION↔CHANGELOG step runs the versioning skill's `check-changelog.sh`, vendored, instead of an inline grep that only looked for the heading; `references/versioning.md` says how a repository takes it
+- the `update-lock.yml` template marks its cron as the repository's slot in the Monday wave, bounds both jobs that push with `timeout-minutes`, and lands on the branch the run started on rather than a hardcoded `master`
 
 ### Fixed
 
@@ -19,12 +24,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **the distro test's version check could not fail.** It fell back to `./install.sh --version`, which reads the very `VERSION` it was compared against, and matched by substring, so `1.0` passed against `1.0.1`. It reads the installed `share/<name>/VERSION` and the tool's own `--version`, as a whole word; the refusal line is matched whole too, and the default distribution list is derived from `IMAGE` instead of copied beside it
 - **the shell-lint fixture never proved shellcheck.** Inside an `if`, errexit is suspended, so the lint function reported shfmt's status alone; each tool now has to fail the fixture on its own
 - statements that had gone false: job `shell` runs the pin guard before the lint command, the `sudo` shim is `exec env "$@"`, the `paru -S` arm runs outside the guidance `timeout`, `templates/github/` lands as `.github/` rather than mirroring its path, three dependency classes were introduced as two, and the no-`Unreleased` rule belongs to the versioning skill
-
-### Changed
-
-- the description no longer claims VERSION handling and CI badges, which belong to the versioning and ci skills, names huix, and trades bare "uninstall" for `install.sh --uninstall`
-- prose in `SKILL.md` and the references ends without a full stop, like the rest of the family
-- the adoption checklist asks for the repo's agent instructions to be updated — `CLAUDE.md`, `AGENTS.md` or whatever the agent reads — rather than naming one harness's file
 
 ## 2026-09-07
 

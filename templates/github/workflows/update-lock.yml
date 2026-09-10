@@ -5,7 +5,10 @@ name: update-lock
 # (build.yml itself, not a copy of its commands) and lands the bump only if they pass
 on:
   schedule:
+    # >>> EXAMPLE: the repository's slot in the family's Monday wave — 05:00 for the palette,
+    # 06:00 for a repository that consumes it, 07:00 for the system flake that takes them all
     - cron: "0 6 * * 1"
+    # <<<
   workflow_dispatch:
 
 # Two runs would push the same branch from different bases
@@ -17,6 +20,7 @@ permissions:
 jobs:
   bump:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     outputs:
@@ -59,6 +63,7 @@ jobs:
   land:
     needs: [bump, verify]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
@@ -66,7 +71,11 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.branch }}
           fetch-depth: 0
-      - name: fast-forward master onto the verified tree
+      # GITHUB_REF_NAME is the branch the run started on: the default branch for the weekly
+      # schedule, whose event carries no repository payload to read the default branch from
+      - name: fast-forward the branch the run started on onto the verified tree
+        env:
+          BRANCH: ${{ needs.bump.outputs.branch }}
         run: |
-          git push origin HEAD:master
-          git push origin --delete "${{ needs.bump.outputs.branch }}"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+          git push origin --delete "$BRANCH"

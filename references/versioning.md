@@ -11,7 +11,7 @@ The consequence visible here: this skill is one of the repos with no version, so
 
 ## The CI check, and the red run that earns it
 
-`build.yml` carries the `VERSION` matches `CHANGELOG` step before anything builds — the shape is in the [ci](https://github.com/rokokol/ci-skill) skill's build template, and `check-changelog.sh` from the versioning skill does the same job and more
+`build.yml` carries the `VERSION` matches `CHANGELOG` step before anything builds, and the step is one line: `./check-changelog.sh CHANGELOG.md`, the versioning skill's checker, taken into the repository as a vendored file — `vendor-sync.sh add check-changelog.sh rokokol/versioning-skill check-changelog.sh`, by the ci skill's [vendored files](https://github.com/rokokol/ci-skill/blob/master/references/bump-cascade.md#vendored-files). It holds the changelog's shape to the rules as well, which the inline grep it replaced never did
 
 It exists because the failure it catches has already happened in the family: a repo's package said `1.0` while its tag said `v1.0.1`. When adopting the standard on a repo whose versions already disagree, run the check **before** fixing them — it must go red on the real mismatch. That red run is the check's own falsifiability test; only then align the files
 

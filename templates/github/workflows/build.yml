@@ -26,13 +26,10 @@ jobs:
           ref: ${{ inputs.ref }}
       - uses: cachix/install-nix-action@v31
 
+      # The versioning skill's checker, vendored: VERSION against CHANGELOG, and the
+      # changelog's shape, from one file rather than an inline grep that checked half of it
       - name: VERSION matches CHANGELOG
-        run: |
-          ver=$(cat VERSION)
-          grep -qF "## [$ver]" CHANGELOG.md || {
-            echo "VERSION says $ver but CHANGELOG.md has no ## [$ver] heading" >&2
-            exit 1
-          }
+        run: ./check-changelog.sh CHANGELOG.md
 
       - run: nix build --no-write-lock-file
       - run: nix flake check --no-write-lock-file
