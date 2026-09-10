@@ -33,13 +33,22 @@ mapfile -t flags < <(
   exit 1
 }
 
+# A flag has to appear as a token of its own. A substring match let `-f` pass on a completion
+# that offered only `--force`, and `-h` on one that offered only `--help`, so a missing short
+# flag always passed whenever its long twin was present. The hyphen counts as part of the
+# token on purpose: `grep -w` treats it as a separator, and would accept `--help` inside
+# `--help-all`
+offers() { # offers FILE FLAG -> 0 when FILE names FLAG as a whole token
+  grep -qE -- "(^|[^[:alnum:]_-])$2([^[:alnum:]_-]|\$)" "$1"
+}
+
 fails=0
 for flag in "${flags[@]}"; do
-  grep -qF -- "$flag" "$bash_comp" || {
+  offers "$bash_comp" "$flag" || {
     echo "check-completions: $flag is parsed by install.sh but absent from ${bash_comp##*/}" >&2
     fails=$((fails + 1))
   }
-  grep -qF -- "$flag" "$zsh_comp" || {
+  offers "$zsh_comp" "$flag" || {
     echo "check-completions: $flag is parsed by install.sh but absent from ${zsh_comp##*/}" >&2
     fails=$((fails + 1))
   }

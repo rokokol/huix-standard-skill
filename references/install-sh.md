@@ -27,6 +27,7 @@ Everything lives in `$PREFIX/share/<name>/`: the script(s), the data, the manife
 When an install flag has to bake an environment default into the entry point (the non-Nix analog of `wrapProgram --set-default`), the symlink becomes a generated wrapper, written with a heredoc whose `\$` are escaped — shellcheck reads that cleanly, where a printf full of literal `${...}` needs a disable comment:
 
 ```sh
+rm -f "$root/bin/<name>"
 cat >"$root/bin/<name>" <<EOF
 #!/bin/sh
 export SOME_VAR="\${SOME_VAR:-$value}"
@@ -35,7 +36,7 @@ EOF
 chmod 755 "$root/bin/<name>"
 ```
 
-The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped.
+The `rm -f` is not tidiness. When an earlier install without the flag left the relative symlink in place, `>` writes through it into `share/<name>/<name>.sh` itself: the real script is replaced by the wrapper, and the wrapper then `exec`s itself until something kills it. Reproduced — the symlink survives, the script is overwritten, and the tool loops until a timeout stops it. The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped.
 
 The symlink rule assumes the script's data lives in `share/<name>/` next to it. A tool that derives its data directory from its own location in a different shape (ddlc-rofi-theme's switch: `<own dir>/../share/rofi/themes`; skvpn is the same case) gets a **copy** in bin instead — which is also what its Nix package installs, and the installer is that package's projection. Say so in a comment at the `put`; the manifest records the copy like anything else.
 

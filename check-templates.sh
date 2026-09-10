@@ -81,6 +81,14 @@ echo "== the completion drift check agrees with the templates it ships beside"
 # The one template that can be executed here rather than only linted: run it on the
 # template installer and completions, exactly as a target repository runs it on its own
 bash templates/tests/check-completions.sh "$PWD/templates"
+# And it is able to fail. Until this fixture existed the check only ever saw completions that
+# agree, so nothing showed that a substring match let every short flag pass whenever its
+# long twin was present: the fixture offers --force and never -f
+if out=$(bash templates/tests/check-completions.sh "$PWD/tests/fixtures/completions-drift" 2>&1); then
+  fail "the completion drift check passed completions that never offer -f — a missing short flag goes unseen"
+fi
+grep -qF -- '-f is parsed by install.sh but absent' <<<"$out" ||
+  fail "the completion drift check failed the drift fixture for the wrong reason: $out"
 
 echo "== templates/VERSION is the x.y.z a new repository starts from"
 # Its shape is all it can be checked against: it is not this repository's version (a skill

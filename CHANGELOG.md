@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [ci](https://github.com/rokokol/ci-skill) skill, which owns what has no version.
 
+## 2026-09-10
+
+### Fixed
+
+- **the completion drift check could not catch a missing short flag.** It matched flags as substrings, and `-f` is a substring of `--force` as `-h` is of `--help`, so whenever a long flag was offered its short twin always passed. It matches whole tokens now, counting the hyphen as part of one, since `grep -w` would accept `--help` inside `--help-all`. `check-templates.sh` had only ever run it on templates that agree; a fixture that offers `--force` and never `-f` now has to fail, naming `-f`
+- **the env-baking wrapper recipe could make a tool loop forever.** When an earlier install without the flag had left the relative symlink in `bin/`, `cat >` wrote through it into the real script in `share/`, and the wrapper then `exec`ed itself. Reproduced: the symlink survives, the script is overwritten, and the tool runs until a timeout kills it. `references/install-sh.md` removes the entry before writing the wrapper
+
 ## 2026-09-07
 
 ### Added
