@@ -108,11 +108,12 @@ lnk() { # lnk TARGET RUNTIME_DST — relative symlink into share, recorded
   installed+=("$2")
 }
 
-prune() { # remove now-empty parents of RUNTIME_PATH, stopping at the prefix root
-  local dir stop
+prune() { # remove now-empty parents of RUNTIME_PATH, stopping below the prefix's own dirs
+  # bin/, share/, etc/ belong to the prefix, not to this install: a shell profile may put
+  # ~/.local/bin on PATH only when it exists, so they stay even when empty
+  local dir
   dir="$(dirname "${DESTDIR%/}$1")"
-  stop="$root"
-  while [[ "$dir" == "$stop"/* ]]; do
+  while [[ "$dir" == "$root"/*/* ]]; do
     rmdir "$dir" 2>/dev/null || break
     dir="$(dirname "$dir")"
   done
@@ -207,8 +208,9 @@ fi
 # --- install ---------------------------------------------------------------------------
 
 # >>> EXAMPLE files: script and data into share, a relative symlink in bin, completions
-# for the tool. When an install flag bakes an env default, write a two-line exec wrapper
-# instead of the symlink (export VAR="${VAR:-value}"; exec .../script.sh "$@")
+# for the tool. When an install flag bakes an env default, the symlink becomes a generated
+# wrapper: take the recipe from huix-standard's references/install-sh.md, which removes
+# the symlink first (writing through it overwrites the real script) and quotes the value
 put 755 "$here/@NAME@.sh" "$share_runtime/@NAME@.sh"
 lnk "../share/@NAME@/@NAME@.sh" "$PREFIX/bin/@NAME@"
 # <<<

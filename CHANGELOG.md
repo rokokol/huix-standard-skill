@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [ci](https://github.com/rokokol/ci-skill) skill, which owns what has no version.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
 ## 2026-09-10
 
@@ -10,6 +10,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **the completion drift check could not catch a missing short flag.** It matched flags as substrings, and `-f` is a substring of `--force` as `-h` is of `--help`, so whenever a long flag was offered its short twin always passed. It matches whole tokens now, counting the hyphen as part of one, since `grep -w` would accept `--help` inside `--help-all`. `check-templates.sh` had only ever run it on templates that agree; a fixture that offers `--force` and never `-f` now has to fail, naming `-f`
 - **the env-baking wrapper recipe could make a tool loop forever.** When an earlier install without the flag had left the relative symlink in `bin/`, `cat >` wrote through it into the real script in `share/`, and the wrapper then `exec`ed itself. Reproduced: the symlink survives, the script is overwritten, and the tool runs until a timeout kills it. `references/install-sh.md` removes the entry before writing the wrapper
+- **an uninstall removed the prefix's own empty `bin/`.** The template's `prune()` climbed as far as `$PREFIX/bin` and `$PREFIX/share` and removed them when empty, though the install never created them — and a shell profile may put `~/.local/bin` on PATH only when it exists. It stops below the prefix's top-level directories now, and `references/install-sh.md` no longer prescribes `rmdir -p`, which climbs past the prefix itself. `check-templates.sh` runs the installer template for real — install, reinstall, staged install, uninstall twice — and went red on this before the fix
+- **the wrapper recipe pasted the baked value into generated code.** A value holding a quote, `$(…)` or a backtick became part of the script; the recipe single-quotes the value and the path, checked against a value carrying all of them
+- **the distro test's version check could not fail.** It fell back to `./install.sh --version`, which reads the very `VERSION` it was compared against, and matched by substring, so `1.0` passed against `1.0.1`. It reads the installed `share/<name>/VERSION` and the tool's own `--version`, as a whole word; the refusal line is matched whole too, and the default distribution list is derived from `IMAGE` instead of copied beside it
+- **the shell-lint fixture never proved shellcheck.** Inside an `if`, errexit is suspended, so the lint function reported shfmt's status alone; each tool now has to fail the fixture on its own
+- statements that had gone false: job `shell` runs the pin guard before the lint command, the `sudo` shim is `exec env "$@"`, the `paru -S` arm runs outside the guidance `timeout`, `templates/github/` lands as `.github/` rather than mirroring its path, three dependency classes were introduced as two, and the no-`Unreleased` rule belongs to the versioning skill
+
+### Changed
+
+- the description no longer claims VERSION handling and CI badges, which belong to the versioning and ci skills, names huix, and trades bare "uninstall" for `install.sh --uninstall`
+- prose in `SKILL.md` and the references ends without a full stop, like the rest of the family
 
 ## 2026-09-07
 

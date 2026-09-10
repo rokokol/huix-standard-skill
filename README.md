@@ -43,7 +43,7 @@ git clone https://github.com/rokokol/huix-standard-skill ~/.claude/skills/huix-s
 > [!NOTE]
 > A skill has no version to pin — it is read at whatever revision you have checked out, so `git pull` is the whole upgrade path
 
-Then ask Claude Code to bring a repo up to standard. [SKILL.md](SKILL.md) carries the decisions and the checklist, `references/` the reasoning, `templates/` the files themselves, laid out along a target repo's own paths so copying is mechanical
+Then ask Claude Code to bring a repo up to standard. [SKILL.md](SKILL.md) carries the decisions and the checklist, `references/` the reasoning, `templates/` the files themselves, laid out along a target repo's own paths so copying is mechanical — except `templates/github/`, which lands as `.github/`
 
 ## What the standard says
 
@@ -74,14 +74,14 @@ A repo with no installer at all — pure data, or a plugin its own manager insta
 nix develop -c ./check-templates.sh
 ```
 
-Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, runs the completion drift check on the templates it ships beside, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
+Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, runs the completion drift check on the templates it ships beside, runs the installer template for real through install, reinstall, a staged install and uninstall, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
 
 ## Layout
 
 ```
 SKILL.md             the decisions and the adoption checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
-templates/           copyable files mirroring a target repo's paths, @NAME@/@OWNER@/@REPO@ tokens
+templates/           copyable files at a target repo's paths (github/ lands as .github/), @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
 check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
 check-pins.sh        the pin guard for the workflows, copied verbatim from the ci skill

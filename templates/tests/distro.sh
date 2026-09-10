@@ -68,7 +68,8 @@ if [[ "${1:-}" != "--inside" ]]; then
   fi
 
   wanted=("$@")
-  ((${#wanted[@]})) || wanted=(debian ubuntu arch fedora)
+  # Every distribution IMAGE names, so adding one there is the whole change
+  ((${#wanted[@]})) || mapfile -t wanted < <(printf '%s\n' "${!IMAGE[@]}" | sort)
 
   fails=0
   for distro in "${wanted[@]}"; do
@@ -127,7 +128,7 @@ rc=0
 out=$(./install.sh "${INSTALL_FLAGS[@]}" 2>&1) || rc=$?
 if ((rc != 0)); then
   # The refusal must be complete and clean: name what is missing, write nothing
-  printf '%s\n' "$out" | grep -q 'missing dependencies' ||
+  printf '%s\n' "$out" | grep -qxF 'install.sh: missing dependencies:' ||
     die "the refusal did not say what is missing: $out"
   [[ ! -e "$bin_path" && ! -e "$share_dir" ]] ||
     die "a refused install left files behind"
@@ -206,9 +207,15 @@ fi
 say "the installed tool answers"
 [[ -e "$bin_path" ]] || die "no $bin_path after install"
 [[ -f "$share_dir/install-manifest" ]] || die "no install-manifest after install"
-version_out=$("$bin_path" --version 2>/dev/null || ./install.sh --version)
-[[ "$version_out" == *"$(cat VERSION)"* ]] ||
-  die "--version does not match VERSION: $version_out"
+want_version=$(cat VERSION)
+[[ "$(cat "$share_dir/VERSION" 2>/dev/null)" == "$want_version" ]] ||
+  die "the installed $share_dir/VERSION is not $want_version"
+# The installed tool itself, never install.sh standing in for it — install.sh reads the
+# very VERSION file it would be compared against. And as a whole word: 1.0 is a
+# substring of 1.0.1
+version_out=$("$bin_path" --version) || die "the installed tool does not answer --version"
+grep -qxF -- "$want_version" < <(tr -s '[:space:]' '\n' <<<"$version_out") ||
+  die "--version does not print $want_version as a word: $version_out"
 ./install.sh --help >/dev/null || die "--help failed"
 smoke "$prefix" || die "smoke test failed"
 

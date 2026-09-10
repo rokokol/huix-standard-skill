@@ -78,8 +78,8 @@ actionlint
 ./check-pins.sh .github/workflows templates/github/workflows
 
 echo "== the completion drift check agrees with the templates it ships beside"
-# The one template that can be executed here rather than only linted: run it on the
-# template installer and completions, exactly as a target repository runs it on its own
+# Run on the template installer and completions, exactly as a target repository runs it
+# on its own
 bash templates/tests/check-completions.sh "$PWD/templates"
 # And it is able to fail. Until this fixture existed the check only ever saw completions that
 # agree, so nothing showed that a substring match let every short flag pass whenever its
@@ -89,6 +89,47 @@ if out=$(bash templates/tests/check-completions.sh "$PWD/tests/fixtures/completi
 fi
 grep -qF -- '-f is parsed by install.sh but absent' <<<"$out" ||
   fail "the completion drift check failed the drift fixture for the wrong reason: $out"
+
+echo "== the installer template installs, reinstalls, stages and uninstalls for real"
+# Lint says the template parses; only running it says it installs. The demo repository is
+# the template instantiated beside a stand-in tool, and the prefix starts with an empty
+# bin/ of its own — what ~/.local/bin looks like before anything lands in it, and what a
+# shell profile tests for before putting it on PATH — so the uninstall must leave it
+demo="$work/run"
+mkdir -p "$demo/repo" "$demo/prefix/bin"
+instantiate templates/install.sh "$demo/repo/install.sh"
+chmod +x "$demo/repo/install.sh"
+cp templates/VERSION "$demo/repo/VERSION"
+version="demo $(cat templates/VERSION)"
+printf '#!/bin/sh\necho "%s"\n' "$version" >"$demo/repo/demo.sh"
+run_install() { "$demo/repo/install.sh" --prefix "$demo/prefix" "$@" >/dev/null; }
+manifest="$demo/prefix/share/demo/install-manifest"
+
+run_install || fail "the installer template failed a plain install"
+[[ "$("$demo/prefix/bin/demo")" == "$version" ]] ||
+  fail "the installed entry point does not run the tool"
+[[ "$("$demo/repo/install.sh" --version)" == "$version" ]] ||
+  fail "install.sh --version does not print '$version'"
+first=$(cat "$manifest")
+run_install || fail "the installer template failed to reinstall over itself"
+[[ "$(cat "$manifest")" == "$first" ]] ||
+  fail "a reinstall with the same flags changed the manifest"
+mapfile -t paths < <(grep -v '^#' "$manifest")
+run_install --uninstall || fail "the installer template failed to uninstall"
+for path in "${paths[@]}"; do
+  [[ ! -e "$path" && ! -L "$path" ]] || fail "uninstall left $path behind"
+done
+[[ ! -e "$demo/prefix/share/demo" ]] || fail "uninstall left share/demo behind"
+[[ -d "$demo/prefix/bin" ]] ||
+  fail "uninstall removed the prefix's own bin/, which the install never created"
+run_install --uninstall || fail "a second uninstall is not a quiet success"
+
+# Staged: files land under DESTDIR, the manifest names the paths they will have at runtime
+run_install --destdir "$demo/stage" || fail "the installer template failed a staged install"
+[[ -L "$demo/stage$demo/prefix/bin/demo" ]] || fail "a staged install put no bin entry under DESTDIR"
+if grep -qF -- "$demo/stage" "$demo/stage$manifest"; then
+  fail "a staged manifest records DESTDIR paths instead of runtime ones"
+fi
 
 echo "== templates/VERSION is the x.y.z a new repository starts from"
 # Its shape is all it can be checked against: it is not this repository's version (a skill
@@ -103,8 +144,13 @@ echo "== this repository passes the gate every skill repository shares"
 ./check-skill.sh -n huix-standard .
 
 echo "== the lint can fail: known-bad fixtures must go red"
-if lint_sh tests/fixtures/must-fail.sh >/dev/null 2>&1; then
-  fail "the shell lint passed tests/fixtures/must-fail.sh — it cannot catch anything"
+# One tool at a time: inside an `if` errexit is suspended, so `lint_sh` there would
+# report shfmt's status alone and a shellcheck that passes everything would go unseen
+if shellcheck tests/fixtures/must-fail.sh >/dev/null 2>&1; then
+  fail "shellcheck passed tests/fixtures/must-fail.sh — it cannot catch anything"
+fi
+if shfmt -d -i 2 -ci tests/fixtures/must-fail.sh >/dev/null 2>&1; then
+  fail "shfmt passed tests/fixtures/must-fail.sh — it cannot catch anything"
 fi
 bad=$(mktemp -d)
 mkdir -p "$bad/.github/workflows"

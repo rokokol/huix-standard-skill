@@ -1,6 +1,6 @@
 # README additions
 
-The family README shape (centered header, badge stack, `## Contents`, `## Install` with `### Any other distribution`, `## Tests`, `## Layout`) is unchanged; the standard adds to it.
+The family README shape (centered header, badge stack, `## Contents`, `## Install` with `### Any other distribution`, `## Tests`, `## Layout`) is unchanged; the standard adds to it
 
 ## Badges
 
@@ -14,12 +14,12 @@ The stack keeps its fixed order — tech badges, `Nix-flake`, optional palette/a
 [![fedora](https://github.com/OWNER/REPO/actions/workflows/distro-fedora.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/distro-fedora.yml)
 ```
 
-A distro badge reflects the last push-to-master or weekly run — PRs never touch these workflows, so the badge is a statement about master on a current `:latest` image, which is exactly what a visitor wants to know.
+A distro badge reflects the last push-to-master or weekly run — PRs never touch these workflows, so the badge is a statement about master on a current `:latest` image, which is exactly what a visitor wants to know
 
 ## Any other distribution
 
-The section documents, in this order: the `./install.sh` one-liner; that dependencies are never installed silently — the script names what is missing and how to get it; `--uninstall`; the two completion `source` lines; and a short table of the runtime environment variables (the ones `--help`'s Runtime environment section lists), because those are the non-Nix answer to the module's runtime options.
+The section documents, in this order: the `./install.sh` one-liner; that dependencies are never installed silently — the script names what is missing and how to get it; `--uninstall`; the two completion `source` lines; and a short table of the runtime environment variables (the ones `--help`'s Runtime environment section lists), because those are the non-Nix answer to the module's runtime options
 
 ## Tests
 
-`## Tests` mentions `tests/distro.sh <distro>` as locally runnable (needs docker or podman) and that it runs the full preflight→guidance→install→smoke→uninstall cycle.
+`## Tests` mentions `tests/distro.sh <distro>` as locally runnable (needs docker or podman) and that it runs the full preflight→guidance→install→smoke→uninstall cycle
