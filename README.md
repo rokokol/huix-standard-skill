@@ -9,7 +9,7 @@
 ![Nix](https://img.shields.io/badge/Nix-flake-7EBAE4?style=flat&logo=nixos&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 [![license](https://img.shields.io/badge/MIT-3DA639?style=flat)](LICENSE)
-[![ci](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/rokokol/huix-standard-skill/actions/workflows/ci.yml)
+[![ci](https://github.com/rokokol/huix-standard-skill/actions/workflows/build.yml/badge.svg)](https://github.com/rokokol/huix-standard-skill/actions/workflows/build.yml)
 
 </div>
 

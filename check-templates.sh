@@ -18,9 +18,9 @@ fail() {
 }
 
 # The gate's own scripts, linted but never instantiated: they carry no tokens, only the
-# sed that replaces them. check-skill.sh and check-pins.sh are copied verbatim from the
-# ci skill
-gate=(check-templates.sh check-skill.sh check-pins.sh)
+# sed that replaces them. check-skill.sh, check-pins.sh and vendor-sync.sh are vendored
+# from the ci skill
+gate=(check-templates.sh check-skill.sh check-pins.sh vendor-sync.sh)
 sh_templates=(templates/install.sh templates/tests/distro.sh templates/tests/check-completions.sh)
 bash_sourced=(templates/completions/install.sh.bash)
 zsh_sourced=(templates/completions/install.sh.zsh)
@@ -71,10 +71,12 @@ done
 (cd "$work" && actionlint .github/workflows/*.yml)
 
 echo "== this repository's own workflows are valid, and no workflow here or in the templates reaches a registry"
-# The pin guard the build.yml template hands out, copied verbatim from the ci skill. It
-# proves on every run that it catches each unpinned shape, then scans both this
-# repository's workflows and the template ones — the templates are workflows too
+# The pin guard the build.yml template hands out, vendored from the ci skill. It proves on
+# every run that it catches each unpinned shape, then scans both this repository's
+# workflows and the template ones — the templates are workflows too. Every vendored copy
+# must still be the blob .github/vendor.lock records, so one edited here fails by name
 actionlint
+./vendor-sync.sh check
 ./check-pins.sh .github/workflows templates/github/workflows
 
 echo "== the completion drift check agrees with the templates it ships beside"
