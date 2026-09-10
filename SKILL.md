@@ -35,7 +35,7 @@ Work through this in order when bringing a repo up to standard:
 4. `tests/distro.sh` from template, adapted; run each distro locally in docker before pushing ([references/distro-tests.md](references/distro-tests.md))
 5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`, the pin guard as `./check-pins.sh` — copied verbatim from the ci skill's templates, never edited) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates
 6. README: four distro badges after the build badge; document `--uninstall`, completions sourcing, runtime env vars ([references/readme.md](references/readme.md))
-7. CHANGELOG bullets for every user-visible change; CLAUDE.md layout/build sections updated
+7. CHANGELOG bullets for every user-visible change; the layout and build sections of the repo's agent instructions (`CLAUDE.md`, `AGENTS.md` or whatever the agent reads) updated
 8. Backport: diff what this repo needed against the templates; generalize the difference into this skill
 
 A repo with no `install.sh` — pure data (ddlc-palette) or a plugin installed by its manager (ddlc.nvim) — takes the **partial shape**: steps 1 (VERSION, read by the package or exposed as `lib.version`, with the CI check) and 5–7 minus everything installer-shaped — no completions, no distro tests, no distro badges. The lint dedup and the registry guard apply in full

@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - the description no longer claims VERSION handling and CI badges, which belong to the versioning and ci skills, names huix, and trades bare "uninstall" for `install.sh --uninstall`
 - prose in `SKILL.md` and the references ends without a full stop, like the rest of the family
+- the adoption checklist asks for the repo's agent instructions to be updated — `CLAUDE.md`, `AGENTS.md` or whatever the agent reads — rather than naming one harness's file
 
 ## 2026-09-07
 
