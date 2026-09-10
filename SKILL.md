@@ -33,7 +33,7 @@ Work through this in order when bringing a repo up to standard:
 2. `install.sh` reworked onto the canonical skeleton: flag grammar, preflight with `$ `-prefixed guidance, manifest, `--uninstall`, declarative booleans, `--no-systemd` where the repo touches systemd ([references/install-sh.md](references/install-sh.md), template `templates/install.sh`)
 3. `completions/install.sh.bash` + `completions/install.sh.zsh` from templates; drift check wired into `scripts-lint` ([references/completions.md](references/completions.md))
 4. `tests/distro.sh` from template, adapted; run each distro locally in docker before pushing ([references/distro-tests.md](references/distro-tests.md))
-5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`, the pin guard as `./check-pins.sh` — copied verbatim from the ci skill's templates, never edited) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates
+5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`, the pin guard as `./check-pins.sh` — vendored from the ci skill, never edited) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates. `distro.yml` and the four `distro-*.yml` wrappers are the only files here a repo keeps byte for byte, so they are vendored rather than copied: `vendor-sync.sh add --manual .github/workflows/distro.yml rokokol/huix-standard-skill templates/github/workflows/distro.yml`, and the same for each wrapper. `--manual` because the token a workflow runs with cannot push a workflow file: the gate still refuses an edit in place, and a person refreshes them with `vendor-sync.sh update --manual`. Every other template is scaffolding the repo owns from the first commit. The mechanism is the ci skill's [vendored files](https://github.com/rokokol/ci-skill/blob/master/references/bump-cascade.md#vendored-files)
 6. README: four distro badges after the build badge; document `--uninstall`, completions sourcing, runtime env vars ([references/readme.md](references/readme.md))
 7. CHANGELOG bullets for every user-visible change; the layout and build sections of the repo's agent instructions (`CLAUDE.md`, `AGENTS.md` or whatever the agent reads) updated
 8. Backport: diff what this repo needed against the templates; generalize the difference into this skill
@@ -47,7 +47,7 @@ SKILL.md             this file — decisions and the checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files at a target repo's paths (templates/github/ lands as .github/); @NAME@/@OWNER@/@REPO@ tokens in strings and comments only
 check-templates.sh   lints the templates raw and instantiated, runs the installer through a full cycle; self-tests against tests/fixtures
-check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
-check-pins.sh        the pin guard for the workflows, copied verbatim from the ci skill
+check-skill.sh       the gate every skill repository shares, vendored from the ci skill
+check-pins.sh        the pin guard for the workflows, vendored from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

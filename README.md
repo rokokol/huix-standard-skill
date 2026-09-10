@@ -83,7 +83,7 @@ SKILL.md             the decisions and the adoption checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files at a target repo's paths (github/ lands as .github/), @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
-check-skill.sh       the gate every skill repository shares, copied verbatim from the ci skill
-check-pins.sh        the pin guard for the workflows, copied verbatim from the ci skill
+check-skill.sh       the gate every skill repository shares, vendored from the ci skill
+check-pins.sh        the pin guard for the workflows, vendored from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

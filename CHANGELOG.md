@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## 2026-09-10
 
+### Changed
+
+- adoption step 5 says how a repository takes `distro.yml` and its four wrappers: they are the only templates a repo keeps byte for byte, so they are vendored with the ci skill's cascade as manual lines of the lock rather than copied, and the gate refuses an edit in place. `check-pins.sh` and `check-skill.sh` are described as vendored from the ci skill, not copied
+
 ### Fixed
 
 - **the completion drift check could not catch a missing short flag.** It matched flags as substrings, and `-f` is a substring of `--force` as `-h` is of `--help`, so whenever a long flag was offered its short twin always passed. It matches whole tokens now, counting the hyphen as part of one, since `grep -w` would accept `--help` inside `--help-all`. `check-templates.sh` had only ever run it on templates that agree; a fixture that offers `--force` and never `-f` now has to fail, naming `-f`
