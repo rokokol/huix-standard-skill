@@ -31,7 +31,15 @@ usage: ./install.sh [options]
 
 Runtime environment (read by the installed tool, not this script):
   EXAMPLE_VAR       what it tunes (default: value)
+
+Exit 0 done, 1 when the install could not be made — a dependency missing, a manifest
+that cannot be written — and 2 on a usage error.
 EOF
+}
+
+die() { # the request itself is wrong
+  printf 'install.sh: %s\n' "$1" >&2
+  exit 2
 }
 
 UNINSTALL=0
@@ -48,11 +56,14 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     --prefix)
-      PREFIX="${2:?directory required by $1}"
+      # Not ${2:?}: that exits 1 with bash's own message, and a usage error is 2
+      (($# >= 2)) || die "$1 needs a directory"
+      PREFIX="$2"
       shift 2
       ;;
     --destdir)
-      DESTDIR="${2:?directory required by $1}"
+      (($# >= 2)) || die "$1 needs a directory"
+      DESTDIR="$2"
       shift 2
       ;;
     --uninstall)
@@ -60,23 +71,19 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     # >>> EXAMPLE repo-specific flags: one per install-affecting Nix option. Booleans are
-    # single flags that flip the default; value flags guard with ${2:?...}. Set
+    # single flags that flip the default; value flags guard with (($# >= 2)) || die. Set
     # config_given="$1" so --uninstall can refuse the combination
     # <<<
     *)
       usage >&2
-      exit 1
+      exit 2
       ;;
   esac
 done
 
-if [[ "$PREFIX" != /* ]]; then
-  echo "install.sh: PREFIX must be absolute: $PREFIX" >&2
-  exit 1
-fi
+[[ "$PREFIX" == /* ]] || die "PREFIX must be absolute: $PREFIX"
 if ((UNINSTALL)) && [[ -n "$config_given" ]]; then
-  echo "install.sh: --uninstall does not combine with $config_given" >&2
-  exit 1
+  die "--uninstall does not combine with $config_given"
 fi
 
 root="${DESTDIR%/}$PREFIX"

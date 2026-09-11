@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-09-11
+
+### Changed
+
+- `templates/install.sh` exits 2 on a usage error — an unknown flag, a relative prefix, `--uninstall` beside a configuration flag — where it exited 1, guards its value flags with `(($# >= 2)) || die` rather than `${2:?}`, which exited 1 with bash's own message, and says its exit codes in `--help`; the grammar behind these is the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's now, as are the linter and formatter rules and the reasoning behind `sq`, and `references/install-sh.md` points there for them
+- the completion drift check is that skill's `check-sh.sh`, vendored: `templates/tests/check-completions.sh` is gone, `scripts-lint` runs `./check-sh.sh -c completions/install.sh.bash completions/install.sh.zsh install.sh` instead, which also holds the installer's help to its flags and exit codes, and `references/completions.md` keeps only what is the installer's own. The drift fixture stays, and the checker names `-f` on it as before
+
 ## 2026-09-10
 
 ### Changed

@@ -20,8 +20,8 @@ fail() {
 # The gate's own scripts, linted but never instantiated: they carry no tokens, only the
 # sed that replaces them. check-skill.sh, check-pins.sh and vendor-sync.sh are vendored
 # from the ci skill
-gate=(check-templates.sh check-skill.sh check-pins.sh vendor-sync.sh)
-sh_templates=(templates/install.sh templates/tests/distro.sh templates/tests/check-completions.sh)
+gate=(check-templates.sh check-sh.sh check-skill.sh check-pins.sh vendor-sync.sh)
+sh_templates=(templates/install.sh templates/tests/distro.sh)
 bash_sourced=(templates/completions/install.sh.bash)
 zsh_sourced=(templates/completions/install.sh.zsh)
 workflows=(templates/github/workflows/*.yml)
@@ -79,14 +79,16 @@ actionlint
 ./vendor-sync.sh check
 ./check-pins.sh .github/workflows templates/github/workflows
 
-echo "== the completion drift check agrees with the templates it ships beside"
-# Run on the template installer and completions, exactly as a target repository runs it
-# on its own
-bash templates/tests/check-completions.sh "$PWD/templates"
-# And it is able to fail. Until this fixture existed the check only ever saw completions that
-# agree, so nothing showed that a substring match let every short flag pass whenever its
-# long twin was present: the fixture offers --force and never -f
-if out=$(bash templates/tests/check-completions.sh "$PWD/tests/fixtures/completions-drift" 2>&1); then
+echo "== the installer's help and completions agree with its parser, by the bash-best-practices checker"
+# check-sh.sh, vendored from the bash-best-practices skill, holds the template installer's
+# help to its flags and exit codes and both completion files to its parser in both
+# directions — exactly as a target repository runs it on its own, from scripts-lint. It
+# plants its own defects on every run, so nothing here has to prove it can fail
+./check-sh.sh -c templates/completions/install.sh.bash templates/completions/install.sh.zsh templates/install.sh
+# Still, the one defect this repository once let through is kept as a fixture: a substring
+# match let every short flag pass whenever its long twin was present, and the fixture
+# offers --force and never -f
+if out=$(./check-sh.sh -n install.sh -c tests/fixtures/completions-drift/completions/install.sh.bash tests/fixtures/completions-drift/completions/install.sh.zsh tests/fixtures/completions-drift/install.sh 2>&1); then
   fail "the completion drift check passed completions that never offer -f — a missing short flag goes unseen"
 fi
 grep -qF -- '-f is parsed by install.sh but absent' <<<"$out" ||

@@ -14,7 +14,7 @@ The fixed core, in this order in `--help`:
     --uninstall      remove a previous install by its manifest
 ```
 
-After the core come repo-specific flags, one per install-affecting Nix option. `-f` exists only where a `--force` exists. Value-taking flags guard with `"${2:?value required by $1}"`; unknown flags print usage to stderr and exit 1. `--uninstall` refuses to combine with configuration flags — an uninstall has no configuration
+After the core come repo-specific flags, one per install-affecting Nix option. The grammar those flags follow — a short flag always beside a long one, `-f` only where a `--force` exists, a value-taking flag guarded with `(($# >= 2)) || die` rather than `"${2:?…}"`, an unknown flag printing usage to stderr and exiting 2 — is the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's, in its `references/help.md`; the template follows it. `--uninstall` refuses to combine with configuration flags — an uninstall has no configuration
 
 Booleans are single flags that flip the default, and the installer is **declarative**: each run converges the system to exactly the flags given. Running again without `--fix-discord-voice` removes the sysctl file and restores the saved value, the same way unsetting a Nix option does on rebuild. Say this in `--help` in one sentence; it is a behavior change for anyone used to `--no-x` pairs
 
@@ -38,17 +38,15 @@ EOF
 chmod 755 "$root/bin/<name>"
 ```
 
-`sq` is not tidiness either: the value and the path are pasted into a script that will be executed, and pasted bare, a value holding a `"`, a `$(…)` or a backtick becomes code in it. Single quotes are the one sh quoting with no expansion inside, so escaping the single quote itself is the whole job — checked against a value carrying all of those and a prefix with a space in it
+`sq` is not tidiness either: the value and the path are pasted into a script that will be executed, and pasted bare they become code in it. Why single quotes are the whole job, the test value that proves it, and the `sed` spelling a script has to use once it claims bash 3.2 — the parameter-expansion form above is correct on bash 4 and broken on 3.2 — are in the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's `references/lint.md`; an installer is Linux-only and keeps the short form
 
 The `rm -f` is not tidiness. When an earlier install without the flag left the relative symlink in place, `>` writes through it into `share/<name>/<name>.sh` itself: the real script is replaced by the wrapper, and the wrapper then `exec`s itself until something kills it. Reproduced — the symlink survives, the script is overwritten, and the tool loops until a timeout stops it. The `${VAR:-...}` lands literally, so the user's environment still wins — that is what `--set-default` means. The wrapper is recorded in the manifest like any other file, and the declarative sweep (below) puts the symlink back when the flag is dropped
 
 The symlink rule assumes the script's data lives in `share/<name>/` next to it. A tool that derives its data directory from its own location in a different shape (ddlc-rofi-theme's switch: `<own dir>/../share/rofi/themes`; skvpn is the same case) gets a **copy** in bin instead — which is also what its Nix package installs, and the installer is that package's projection. Say so in a comment at the `put`; the manifest records the copy like anything else
 
-**Never silence a linter where a rewrite satisfies it.** The two shapes that come up: `! cmd` under `set -e` skips errexit (SC2251) — write `if cmd; then exit 1; fi`; literal `${...}` in generated scripts (SC2016) — write them via escaped heredocs. A `disable=` comment is a last resort for a rule that is wrong about the code, not a way past a rule that is right
+What to do with a shellcheck finding — never silence it where a rewrite satisfies it, SC2251 and SC2016 included — and why a formatter bump and its reformat land as one commit are the bash-best-practices skill's rules too, in its `references/lint.md`
 
-**When the formatter's opinion changes between versions, the lock bump and the reformat land as one commit** — shfmt 3.14 spaces `((! x))` where 3.13 glued it, and the two reject each other's spelling, so following the new one with the old lock (or the reverse) leaves the weekly bump red for no change of the repo's own
-
-Repos that render a config with an embedded path (ddlc-hyprlock's `@share@`) substitute the **runtime** path `$PREFIX/share/<name>`, never `$DESTDIR$PREFIX` — DESTDIR is where files land, PREFIX is where they will live. Escape sed replacement metacharacters: `sed 's/[&|\\]/\\&/g'`
+Repos that render a config with an embedded path (ddlc-hyprlock's `@share@`) substitute the **runtime** path `$PREFIX/share/<name>`, never `$DESTDIR$PREFIX` — DESTDIR is where files land, PREFIX is where they will live. The replacement is escaped first, `sed 's/[&|\\]/\\&/g'`, for the reason `lint.md` gives
 
 ## DESTDIR and --no-systemd
 
@@ -121,7 +119,6 @@ A repo that installs into `~/.config` (and friends) rather than a prefix keeps t
 
 ## Self-checks the repo must carry
 
-- `tests/run.sh` (or `scripts-lint`) asserts `--help` names every flag the `case` parses, and `-v` output equals `<name> $(cat VERSION)`
-- The completions drift check ([completions.md](completions.md)) fails when a flag exists in `install.sh` but not in both completion files
+- `scripts-lint` runs `./check-sh.sh -c completions/install.sh.bash completions/install.sh.zsh install.sh`, the bash-best-practices skill's checker vendored through the cascade: `--help` names every flag the `case` parses and every code the script exits with, and both completion files agree with the parser in both directions ([completions.md](completions.md)); `tests/run.sh` asserts `-v` output equals `<name> $(cat VERSION)`
 - The refusal path is tested: a machine missing an install dep gets a report naming *all* missing deps (not just the first), and nothing is written. The way to fake that machine in `tests/run.sh` is a stub PATH — a directory of symlinks to every tool the script needs *except* the dep — and it must include `bash` itself: `PATH="$stub" bash …` resolves `bash` with the new PATH already in force. Point `OS_RELEASE` at a fixture too; the flake-check sandbox has no `/etc/os-release`, and the unknown-distro arm prints no `$ ` line to assert on
 - When `tests/run.sh` runs inside a flake check, `patchShebangs` the copied tree first: the sandbox has no `/usr/bin/env`, and `./install.sh` dies with "bad interpreter" before any assertion runs

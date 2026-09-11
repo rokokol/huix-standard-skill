@@ -53,7 +53,7 @@ Then ask Claude Code to bring a repo up to standard. [SKILL.md](SKILL.md) carrie
 | **[A canonical install.sh](references/install-sh.md)** | `-h/-v` short flags beside the long ones, one flag per boolean named so its presence flips the default, install-affecting Nix options mirrored as flags while runtime tunables stay documented env vars |
 | **[A preflight that installs nothing](references/install-sh.md)** | Missing dependencies are collected and reported with exact per-distro remediation, printed as runnable `  $ command` lines — and the distro tests execute those very lines, so a typo in the guidance is a red run rather than an undiscovered lie |
 | **[Uninstall by manifest](references/install-sh.md)** | Every path the install creates is written to `share/<name>/install-manifest`, and `--uninstall` consumes it. A run also sweeps paths a previous manifest names that this run did not write, which is what makes re-running without a flag actually undo it |
-| **[Completions that cannot drift](references/completions.md)** | Hand-written bash and zsh completion for the installer, sourced from the checkout, with a drift check in the lint that fails when a flag gains no completion |
+| **[Completions that cannot drift](references/completions.md)** | Hand-written bash and zsh completion for the installer, sourced from the checkout, held to the installer's parser in both directions by the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's `check-sh.sh` in the lint |
 | **[Distro tests in real containers](references/distro-tests.md)** | Debian, Ubuntu, Arch and Fedora `:latest`, each running the preflight's own guidance and then the install — on push and weekly, never on pull requests, each with its own badge |
 | **[Checks proven able to fail](references/distro-tests.md)** | A new test goes red against the pre-fix state or a deliberately broken fixture before the code that turns it green exists, and assertions on printed guidance match whole lines with `grep -qxF`, never substrings |
 
@@ -74,7 +74,7 @@ A repo with no installer at all — pure data, or a plugin its own manager insta
 nix develop -c ./check-templates.sh
 ```
 
-Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, runs the completion drift check on the templates it ships beside, runs the installer template for real through install, reinstall, a staged install and uninstall, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
+Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, holds the installer template's help and both completion files to its parser with the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's `check-sh.sh`, runs the installer template for real through install, reinstall, a staged install and uninstall, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
 
 ## Layout
 
@@ -85,6 +85,7 @@ templates/           copyable files at a target repo's paths (github/ lands as .
 check-templates.sh   the self-testing template lint
 check-skill.sh       the gate every skill repository shares, vendored from the ci skill
 check-pins.sh        the pin guard for the workflows, vendored from the ci skill
+check-sh.sh          holds the installer template's help and completions to its parser, vendored from the bash-best-practices skill
 vendor-sync.sh       keeps the vendored copies byte-equal to their source, vendored from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```

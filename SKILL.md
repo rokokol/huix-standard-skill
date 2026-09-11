@@ -31,7 +31,7 @@ Work through this in order when bringing a repo up to standard:
 
 1. `VERSION` file; `nix/package.nix` reads it; `install.sh` gains `-v|--version`; CI gains the VERSION↔CHANGELOG step, the vendored `check-changelog.sh` — run it red first if the repo's versions already disagree ([references/versioning.md](references/versioning.md))
 2. `install.sh` reworked onto the canonical skeleton: flag grammar, preflight with `$ `-prefixed guidance, manifest, `--uninstall`, declarative booleans, `--no-systemd` where the repo touches systemd ([references/install-sh.md](references/install-sh.md), template `templates/install.sh`)
-3. `completions/install.sh.bash` + `completions/install.sh.zsh` from templates; drift check wired into `scripts-lint` ([references/completions.md](references/completions.md))
+3. `completions/install.sh.bash` + `completions/install.sh.zsh` from templates; `check-sh.sh` vendored from the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill and `./check-sh.sh -c completions/install.sh.bash completions/install.sh.zsh install.sh` wired into `scripts-lint` ([references/completions.md](references/completions.md))
 4. `tests/distro.sh` from template, adapted; run each distro locally in docker before pushing ([references/distro-tests.md](references/distro-tests.md))
 5. Workflows: `distro.yml` + four wrappers; `build.yml` brought to canon (workflow_call+ref, version step, lint deduped into the flake's `scripts-lint`, the pin guard as `./check-pins.sh` — vendored from the ci skill, never edited) — the [ci](https://github.com/rokokol/ci-skill) skill carries the shape and the templates. `distro.yml` and the four `distro-*.yml` wrappers are the only files here a repo keeps byte for byte, so they are vendored rather than copied: `vendor-sync.sh add --manual .github/workflows/distro.yml rokokol/huix-standard-skill templates/github/workflows/distro.yml`, and the same for each wrapper; as workflow files they are manual lines. Every other template is scaffolding the repo owns from the first commit. The mechanism is the ci skill's [vendored files](https://github.com/rokokol/ci-skill/blob/master/references/bump-cascade.md#vendored-files)
 6. README: four distro badges after the build badge; document `--uninstall`, completions sourcing, runtime env vars ([references/readme.md](references/readme.md))
@@ -49,6 +49,7 @@ templates/           copyable files at a target repo's paths (templates/github/ 
 check-templates.sh   lints the templates raw and instantiated, runs the installer through a full cycle; self-tests against tests/fixtures
 check-skill.sh       the gate every skill repository shares, vendored from the ci skill
 check-pins.sh        the pin guard for the workflows, vendored from the ci skill
+check-sh.sh          holds the installer template's help and completions to its parser, vendored from the bash-best-practices skill
 vendor-sync.sh       keeps the vendored copies byte-equal to their source, vendored from the ci skill
 tests/fixtures/      known-bad inputs the checkers must fail on
 ```
