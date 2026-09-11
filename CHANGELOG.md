@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `templates/install.sh` exits 2 on a usage error — an unknown flag, a relative prefix, `--uninstall` beside a configuration flag — where it exited 1, guards its value flags with `(($# >= 2)) || die` rather than `${2:?}`, which exited 1 with bash's own message, and says its exit codes in `--help`; the grammar behind these is the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's now, as are the linter and formatter rules and the reasoning behind `sq`, and `references/install-sh.md` points there for them
 - the completion drift check is that skill's `check-sh.sh`, vendored: `templates/tests/check-completions.sh` is gone, `scripts-lint` runs `./check-sh.sh -c completions/install.sh.bash completions/install.sh.zsh install.sh` instead, which also holds the installer's help to its flags and exit codes, and `references/completions.md` keeps only what is the installer's own. The drift fixture stays, and the checker names `-f` on it as before
+- `templates/completions/install.sh.bash` collects its candidates with a `while IFS= read -r` loop instead of `mapfile`, which bash gained in 4.0, so the file works when a stock macOS bash 3.2 sources it; its header names `check-sh.sh -c` as the check that holds it
 
 ## 2026-09-10
 
