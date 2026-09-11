@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Bash completion for ./install.sh of @NAME@. Sourced from the checkout, not installed:
 #   source completions/install.sh.bash
 # No dependency on the bash-completion package — everything used here is bash builtin,
