@@ -20,23 +20,23 @@ Exit semantics: pass = 0, fail = nonzero. One deliberate green-with-a-mark state
 
 ## AUR policy
 
-AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S` with the documented equivalent: `base-devel` + a throwaway builder (makepkg refuses root, and its own sudo calls would hit our shim), the package's depends read from its PKGBUILD and installed by pacman, `makepkg --noconfirm` **without** `-si`, then `pacman -U` as root. This path is exercised for real by repos with AUR-only deps (pup), not carried "for the future"
+AUR counts as official on Arch, so guidance may print `$ paru -S pkg`. The base `archlinux` image has no AUR helper and paru itself lives in AUR, so the harness special-cases `paru -S` with the documented equivalent: `base-devel` + a throwaway builder (makepkg refuses root, and its own sudo calls would hit our shim), the package's depends read from its PKGBUILD and installed by pacman, `makepkg --noconfirm` **without** `-si`, then `pacman -U` as root
 
-## What the first runs actually caught
+## Failure modes this catches
 
-Worth knowing what class of bug this suite exists for, because every one of these was green everywhere else:
+These mechanisms commonly pass stub-based tests and fail only against a real distribution:
 
-- a green command read as failed — `yes |` under pipefail turned yes's normal SIGPIPE death into a pipeline failure;
-- guidance that could not run — `go install …@latest` resolving a pre-go.mod tag whose fresh dependencies demanded a newer go than Debian ships;
-- **a feature probe trusting a proxy** — a script asked `wc -m` whether a locale works, but bash does the counting downstream, and Ubuntu's switch to uutils coreutils made wc answer for a locale bash never got. Probe the mechanism you depend on, never a neighbor;
-- **an old tool version behind a `2>/dev/null`** — Debian's jq 1.7 cannot parse `capture(…)?.g`, and the muted compile error read as "no sections". When a distro fails where the rest pass, un-mute the pipeline first;
-- **a prompt the answer stream cannot answer** — pacman's provider menu rejected `yes`'s `y` as "invalid number" and re-prompted forever, growing a 9 GB log before anyone looked (virtual-media-devices' ffmpeg pulling jack). Hence the per-manager answer stream and the `timeout` belt above: an interactive loop must become a red failure, never a hang
+- a green command read as failed because `yes |` under pipefail treats `yes`'s normal SIGPIPE death as a pipeline failure;
+- guidance that cannot run — `go install …@latest` resolving a pre-go.mod tag whose fresh dependencies demand a newer Go than the distribution ships;
+- **a feature probe trusting a proxy** — a script asks `wc -m` whether a locale works, but bash does the counting downstream, so a different `wc` implementation can answer for a locale bash never got. Probe the mechanism you depend on, never a neighbour;
+- **an old tool version behind a `2>/dev/null`** — an unsupported jq expression emits a muted compile error that reads as an empty result. When one distribution fails where the rest pass, un-mute the pipeline first;
+- **a prompt the answer stream cannot answer** — a provider menu rejects `yes`'s `y` as an invalid number and re-prompts forever. Hence the per-manager answer stream and the `timeout` belt above: an interactive loop must become a red failure, never a hang
 
 The pattern: the suite does not test your logic — `tests/run.sh` did that — it tests your assumptions about what a distribution provides
 
 One portability rule for the assertions themselves: no empty alternation in ERE — `(a|b|)$` is rejected outright by some grep implementations (ugrep; POSIX calls it undefined). Spell the empty case explicitly, e.g. `[[:space:]]*` for a blank line
 
-And one more surface the suite ends up testing: **the observer's own network topology**. A download that fails inside the container but succeeds from the host (`curl -sI <url>` is the one-line probe) is the network, not the repo — Docker's default bridge egresses directly, bypassing host VPN routing, so a geo-blocking CDN can 403 the container while answering the host 200 (met live: Fedora's `ffmpeg-free` pulling openh264 from Cisco's CloudFront). Verify the cycle locally with `--network host` (`docker run --rm --network host -v "$REPO:/src:ro" <image> bash /src/tests/distro.sh --inside <distro>`); CI runners egress elsewhere and stay the source of truth for that distro
+And one more surface the suite ends up testing: **the observer's own network topology**. A download that fails inside the container but succeeds from the host (`curl -sI <url>` is the one-line probe) is the network, not the repo — Docker's default bridge egresses directly, bypassing host VPN routing, so a geo-blocking CDN can 403 the container while answering the host 200. A package manager can fetch repository metadata and transitive dependencies from different CDNs, so geo-filtering may block only the container's dependency download while the repository and host probe still work. Verify the cycle locally with `--network host` (`docker run --rm --network host -v "$REPO:/src:ro" <image> bash /src/tests/distro.sh --inside <distro>`); CI runners egress elsewhere and stay the source of truth for that distro
 
 ## Systemd
 
