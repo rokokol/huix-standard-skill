@@ -18,8 +18,9 @@ fail() {
 }
 
 # The gate's own scripts, linted but never instantiated: they carry no tokens, only the
-# sed that replaces them. check-skill.sh, check-pins.sh and vendor-sync.sh are vendored
-# from the ci skill
+# sed that replaces them. check-pins.sh and vendor-sync.sh are vendored from the ci skill
+# (https://github.com/rokokol/ci-skill), check-skill.sh from the skill-authoring skill
+# (https://github.com/rokokol/skill-authoring-skill)
 gate=(check-templates.sh check-sh.sh check-skill.sh check-pins.sh vendor-sync.sh)
 sh_templates=(templates/install.sh templates/tests/distro.sh)
 bash_sourced=(templates/completions/install.sh.bash)

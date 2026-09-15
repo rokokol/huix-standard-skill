@@ -16,7 +16,7 @@ The fixed core, in this order in `--help`:
 
 After the core come repo-specific flags, one per install-affecting Nix option. The grammar those flags follow — a short flag always beside a long one, `-f` only where a `--force` exists, a value-taking flag guarded with `(($# >= 2)) || die` rather than `"${2:?…}"`, an unknown flag printing usage to stderr and exiting 2 — is the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's, in its `references/help.md`; the template follows it. `--uninstall` refuses to combine with configuration flags — an uninstall has no configuration
 
-Booleans are single flags that flip the default, and the installer is **declarative**: each run converges the system to exactly the flags given. Running again without `--fix-discord-voice` removes the sysctl file and restores the saved value, the same way unsetting a Nix option does on rebuild. Say this in `--help` in one sentence; it is a behavior change for anyone used to `--no-x` pairs
+Booleans are single flags that flip the default, and the installer is **declarative**: each run converges the system to exactly the flags given. Running again without `--fix-discord-voice` removes the sysctl file and restores the saved value, the same way unsetting a Nix option does on rebuild. Say this in `--help` in one sentence; it is a behavior change for anyone who expects `--no-x` pairs
 
 `--help` ends with a `Runtime environment` section listing the env vars the *installed tool* reads (not the installer). Those are the runtime tunables that deliberately did not become flags
 

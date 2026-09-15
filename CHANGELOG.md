@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-09-15
+
+### Changed
+
+- `check-skill.sh` is vendored from the [skill-authoring](https://github.com/rokokol/skill-authoring-skill) skill, where the rules it checks now live, and reports the rules a skill can break without breaking as warnings on stdout, the exit code unchanged; this repository's links to the standards it imports are reported that way and kept, as the composed standard needs them
+- `references/versioning.md` names the repository's agent instructions as the class (CLAUDE.md, AGENTS.md…) rather than one harness's file, and `references/install-sh.md` says what it says without a `used to`
+
 ## 2026-09-11
 
 ### Changed

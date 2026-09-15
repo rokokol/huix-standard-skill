@@ -15,4 +15,4 @@ The standard's own repository has no release version, so its template gate valid
 
 It exists because the failure it catches has already happened in the family: a repo's package said `1.0` while its tag said `v1.0.1`. When adopting the standard on a repo whose versions already disagree, run the check **before** fixing them — it must go red on the real mismatch. That red run is the check's own falsifiability test; only then align the files
 
-Tag↔VERSION agreement is the versioning skill's as well: checkable once the tag is pushed, while the part no check reaches — putting the tag on the right commit — stays a ritual rule in the repo's own CLAUDE.md, next to the release steps that skill describes
+Tag↔VERSION agreement is the versioning skill's as well: checkable once the tag is pushed, while the part no check reaches — putting the tag on the right commit — stays a ritual rule in the repo's own agent instructions (CLAUDE.md, AGENTS.md…), next to the release steps that skill describes

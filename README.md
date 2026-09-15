@@ -74,7 +74,7 @@ A repo with no installer at all — pure data, or a plugin its own manager insta
 nix develop -c ./check-templates.sh
 ```
 
-Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, holds the installer template's help and both completion files to its parser with the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's `check-sh.sh`, runs the installer template for real through install, reinstall, a staged install and uninstall, holds this repository to the [ci](https://github.com/rokokol/ci-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
+Lints every template raw and again instantiated with demo values (proving no `@TOKEN@` survives), runs actionlint over the template workflows and this repository's own, holds the installer template's help and both completion files to its parser with the [bash-best-practices](https://github.com/rokokol/bash-best-practices-skill) skill's `check-sh.sh`, runs the installer template for real through install, reinstall, a staged install and uninstall, holds this repository to the [skill-authoring](https://github.com/rokokol/skill-authoring-skill) skill's `check-skill.sh` — `SKILL.md` loads, every reference is reached from it, every link and anchor resolves, each proven able to fail on a planted defect — then feeds the checkers their known-bad fixtures from `tests/fixtures/`, and the run fails unless the fixtures do
 
 ## Layout
 
@@ -83,7 +83,7 @@ SKILL.md             the decisions and the adoption checklist
 references/          one spec per piece: install-sh, versioning, completions, distro-tests, readme
 templates/           copyable files at a target repo's paths (github/ lands as .github/), @NAME@/@OWNER@/@REPO@ tokens
 check-templates.sh   the self-testing template lint
-check-skill.sh       the gate every skill repository shares, vendored from the ci skill
+check-skill.sh       the gate every skill repository shares, vendored from the skill-authoring skill
 check-pins.sh        the pin guard for the workflows, vendored from the ci skill
 check-sh.sh          holds the installer template's help and completions to its parser, vendored from the bash-best-practices skill
 vendor-sync.sh       keeps the vendored copies byte-equal to their source, vendored from the ci skill
