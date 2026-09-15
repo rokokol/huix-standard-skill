@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# Installer for @NAME@ on systems without Nix. Projects what nix/package.nix installs onto
-# a plain prefix: the script and its data under share/@NAME@, a relative symlink in bin,
-# and an install-manifest that --uninstall consumes.
-#
 # Template from huix-standard. Replace the EXAMPLE blocks (marked >>> / <<<) with the
 # repo's own dependencies, flags and files; everything outside the markers is the standard
 set -euo pipefail
@@ -18,8 +14,12 @@ usage() {
   cat <<EOF
 install @NAME@ $VERSION into a prefix
 
+Installer for @NAME@ on systems without Nix. Projects what nix/package.nix installs onto
+a plain prefix: the script and its data under share/@NAME@, a relative symlink in bin,
+and an install-manifest that --uninstall consumes
+
 Each run converges the prefix to exactly the flags given: re-running without a flag
-undoes what that flag installed, the way unsetting a Nix option does on rebuild.
+undoes what that flag installed, the way unsetting a Nix option does on rebuild
 
 usage: ./install.sh [options]
   -h, --help        show this help and exit
@@ -33,7 +33,7 @@ Runtime environment (read by the installed tool, not this script):
   EXAMPLE_VAR       what it tunes (default: value)
 
 Exit 0 done, 1 when the install could not be made — a dependency missing, a manifest
-that cannot be written — and 2 on a usage error.
+that cannot be written — and 2 on a usage error
 EOF
 }
 

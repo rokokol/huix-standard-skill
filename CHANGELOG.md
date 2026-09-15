@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `check-skill.sh` is vendored from the [skill-authoring](https://github.com/rokokol/skill-authoring-skill) skill, where the rules it checks now live, and reports the rules a skill can break without breaking as warnings on stdout, the exit code unchanged; this repository's links to the standards it imports are reported that way and kept, as the composed standard needs them
 - `references/versioning.md` names the repository's agent instructions as the class (CLAUDE.md, AGENTS.md…) rather than one harness's file, and `references/install-sh.md` says what it says without a `used to`
+- `templates/install.sh`'s header now keeps only what an editor needs and its `--help` carries everything a caller acts on, what the installer projects onto a prefix included; `check-templates.sh`, the gate, answers `--help` too, with what it needs, the network fact and its exit codes
 
 ## 2026-09-11
 

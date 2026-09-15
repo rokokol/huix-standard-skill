@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
-# Lints the templates twice — raw (the token rule makes them valid shell/YAML as-is) and
-# instantiated with demo values — and then proves the lint can fail at all by feeding it
-# the known-bad fixtures. A checker that cannot go red is not a checker.
-#
-# Needs: shellcheck, shfmt, zsh, actionlint, bash — from the flake's dev shell, locally and
-# in CI alike, never from PATH's luck:
-#
-#   nix develop -c ./check-templates.sh
+# A checker that cannot go red is not a checker
 set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Lints the templates twice — raw (the token rule makes them valid shell/YAML as-is) and
+instantiated with demo values — then proves the lint can fail at all by feeding it the
+known-bad fixtures
+
+  check-templates.sh
+
+Needs shellcheck, shfmt, zsh, actionlint and bash, from the flake's dev shell, locally and
+in CI alike, never from PATH's luck
+
+  nix develop -c ./check-templates.sh
+
+Nothing here reaches the network.
+Exit 0 clean, 1 with `check-templates: <what>` on the first finding
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
 
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 cd "$HERE"
