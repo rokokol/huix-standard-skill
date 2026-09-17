@@ -15,7 +15,7 @@ in CI alike, never from PATH's luck
 
   nix develop -c ./check-templates.sh
 
-Nothing here reaches the network.
+Nothing here reaches the network
 Exit 0 clean, 1 with `check-templates: <what>` on the first finding
 EOF
 }
