@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-09-18
+
+### Fixed
+
+- `references/install-sh.md` said skvpn takes a copy in `bin` for the same reason ddlc-rofi-theme does — a tool that derives its data directory from its own location. It does not: `skvpn.py` derives none of its paths from its own location, and `share/skvpn/` holds only the manifest and the `VERSION` copy, so the symlink has no payload to point past. The page now names both shapes and asks the comment at the `put` to say which one it is, since they retire on different conditions
+
 ## 2026-09-17
 
 ### Fixed
