@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-09-17
+
+### Fixed
+
+- `templates/install.sh` had a header written only for whoever instantiates it, so instantiating deleted the whole header and left the installer with none: every `install.sh` grown from this template today opens with `set -euo pipefail` on line 2, where the standard asks for a header for whoever changes the file. The instantiation note now sits inside an `EXAMPLE` block like every other part that goes, and the paragraph below it stays: the installer is declarative so a new boolean needs its undo, every path created belongs in the manifest `--uninstall` consumes, the preflight installs nothing and prints `  $ command` lines `tests/distro.sh` executes verbatim, and a new flag updates both completions in the same commit
+- `check-templates.sh`'s help ended its network paragraph with a full stop, where the house rule leaves the last line bare
+
 ## 2026-09-15
 
 ### Changed

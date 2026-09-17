@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
-# Template from huix-standard. Replace the EXAMPLE blocks (marked >>> / <<<) with the
-# repo's own dependencies, flags and files; everything outside the markers is the standard
+# >>> EXAMPLE: this paragraph is the instantiation note, and goes with the other EXAMPLE
+# blocks. Replace each block (marked >>> / <<<) with the repo's own dependencies, flags
+# and files; everything outside the markers is the standard. Keep the paragraph below,
+# which is the header for whoever edits this installer afterwards
+# <<<
+#
+# Declarative: a run converges the prefix to exactly the flags given, so a new boolean
+# needs its undo in the sweep as much as its effect. Every path created is recorded in
+# share/<name>/install-manifest, which --uninstall consumes, so a file that skips the
+# manifest is a file no uninstall removes. The preflight installs nothing — it prints
+# runnable guidance as `  $ command` lines that tests/distro.sh executes verbatim, so that
+# format is load-bearing. A new flag updates both completions in the same commit, or
+# check-sh.sh -c fails the gate
 set -euo pipefail
 
 here="$(cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
