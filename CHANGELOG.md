@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## 2026-09-18
 
+### Added
+
+- the dev shell carries `jq`, ahead of the checker that will need it: the vendored `check-sh.sh` is moving off its awk lexer to reading the script it is given as a tree, out of `shfmt --to-json`, with jq flattening that tree into the rows its rules read. It lands before the cascade delivers that checker, so a new copy does not arrive to a missing tool and a red verify
+
 ### Fixed
 
 - `references/install-sh.md` said skvpn takes a copy in `bin` for the same reason ddlc-rofi-theme does — a tool that derives its data directory from its own location. It does not: `skvpn.py` derives none of its paths from its own location, and `share/skvpn/` holds only the manifest and the `VERSION` copy, so the symlink has no payload to point past. The page now names both shapes and asks the comment at the `put` to say which one it is, since they retire on different conditions
