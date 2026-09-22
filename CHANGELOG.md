@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-09-23
+
+### Added
+
+- `check-comments.allow` at the root excuses a rejected parse under `tests/fixtures/`, where `must-fail.sh` leaves a quote open on purpose so the lint pipeline has something it must refuse
+
 ## 2026-09-18
 
 ### Added
