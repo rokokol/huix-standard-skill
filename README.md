@@ -29,14 +29,21 @@ Born in the [rokokol/huix](https://github.com/rokokol/huix) family, but written 
 
 ## Install
 
-```sh
-git clone https://github.com/rokokol/huix-standard-skill ~/Projects/huix-standard
-ln -s ~/Projects/huix-standard ~/.claude/skills/huix-standard
+```bash
+npx skills add -g rokokol/huix-standard-skill    # for you, everywhere
+npx skills add rokokol/huix-standard-skill       # for the project you are standing in
 ```
 
-Or straight into the skills directory your agent reads:
+Claude Code also takes it as a plugin:
 
-```sh
+```
+/plugin marketplace add rokokol/skills
+/plugin install huix-standard@rokokol-skills
+```
+
+or by hand — clone into whichever skills directory your agent reads:
+
+```bash
 git clone https://github.com/rokokol/huix-standard-skill ~/.claude/skills/huix-standard
 ```
 
