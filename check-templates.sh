@@ -89,6 +89,12 @@ for f in "${workflows[@]}"; do
 done
 (cd "$work" && actionlint .github/workflows/*.yml)
 
+echo "== every document keeps the house rules a script can decide"
+# The prose rules, vendored from the create-readme skill: a paragraph on one line, no full
+# stop closing one, plain quotation marks. It proves each of its own rules able to fail on
+# every run, so nothing here has to
+./check-prose.sh README.md SKILL.md CHANGELOG.md references/*.md
+
 echo "== this repository's own workflows are valid, and no workflow here or in the templates reaches a registry"
 # The pin guard the build.yml template hands out, vendored from the ci skill. It proves on
 # every run that it catches each unpinned shape, then scans both this repository's
