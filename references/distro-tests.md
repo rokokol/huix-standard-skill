@@ -10,7 +10,7 @@ The container is root and ships no `sudo`, so the harness answers `sudo` with a 
 
 ## Sequence (inside the container)
 
-1. **bootstrap** — only what the harness needs in a minimal image, never a dependency the guidance is supposed to provide (that would plant the answer)
+1. **bootstrap** — only what the harness needs in a minimal image, never a dependency the guidance is supposed to provide (that would plant the answer). On Arch the refresh is a full upgrade (`pacman -Syu`, not `-Sy`), because the image's packages predate the sync database and Arch supports no partial upgrade. A new package name that takes files the installed one still owns then makes every dependent install die with `failed to commit transaction (conflicting files)`, so a weekly run goes red with no code change behind it
 2. **relative PREFIX is rejected** — a negative assert that proves the argument validation runs
 3. **install** — if the preflight refuses: the refusal names what is missing, has written nothing, and shows no signs of having carried on past the refusal; then the printed guidance runs; then install must succeed. If everything was already present (some `:latest` images carry a lot), that is stated in the log and the refusal path is exercised by the leaner images
 4. **the installed tool answers** — bin path exists, manifest exists, the installed `share/<name>/VERSION` equals `VERSION`, the installed tool's own `--version` prints it as a whole word (1.0 must not pass against 1.0.1), `--help` exits 0, plus the repo's `smoke()`
@@ -37,6 +37,8 @@ The pattern: the suite does not test your logic — `tests/run.sh` did that — 
 One portability rule for the assertions themselves: no empty alternation in ERE — `(a|b|)$` is rejected outright by some grep implementations (ugrep; POSIX calls it undefined). Spell the empty case explicitly, e.g. `[[:space:]]*` for a blank line
 
 And one more surface the suite ends up testing: **the observer's own network topology**. A download that fails inside the container but succeeds from the host (`curl -sI <url>` is the one-line probe) is the network, not the repo — Docker's default bridge egresses directly, bypassing host VPN routing, so a geo-blocking CDN can 403 the container while answering the host 200. A package manager can fetch repository metadata and transitive dependencies from different CDNs, so geo-filtering may block only the container's dependency download while the repository and host probe still work. Verify the cycle locally with `--network host` (`docker run --rm --network host -v "$REPO:/src:ro" <image> bash /src/tests/distro.sh --inside <distro>`); CI runners egress elsewhere and stay the source of truth for that distro
+
+The mirror's own front end is part of the observer. `http://archive.ubuntu.com/` opened a connection in 40 ms but sent the first byte after 16 s, on 7 of 40 requests and once after 32 s, where `deb.debian.org` and `archlinux.org` never stalled. A verdict taken from one request to a distribution mirror therefore measures that queue, and a `||` repeat 20 ms later lands in the same slot. Give the request a real backoff (`curl --retry 6 --retry-all-errors --retry-delay 5`), or assert on a host that is not a mirror
 
 ## Systemd
 

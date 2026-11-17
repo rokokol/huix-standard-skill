@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dated rather than numbered, and with no `Unreleased` section — a skill is read at whatever revision you have checked out, so whatever is on the default branch is what every reader already has, and a section for work that has landed but not shipped would never close. The rule lives in the [versioning](https://github.com/rokokol/versioning-skill) skill, which owns what has no version
 
+## 2026-11-17
+
+### Fixed
+
+- `templates/tests/distro.sh` bootstraps Arch with `pacman -Syu` instead of `-Sy`: a partial upgrade of a `:latest` image dies with `failed to commit transaction (conflicting files)` once a package splits and a new name takes files the installed one still owns, which is how `openssl-3` reddened the weekly run of two repositories with no change of their own
+- `references/distro-tests.md` states that rule beside the bootstrap step, and that a verdict taken from one request to a distribution mirror measures that mirror's own queue: `http://archive.ubuntu.com/` held the first byte for 16 s on 7 of 40 requests, so a `||` repeat 20 ms later cannot survive it
+
 ## 2026-09-23
 
 ### Added
